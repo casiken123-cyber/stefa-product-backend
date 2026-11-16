@@ -49,8 +49,15 @@ class AdminController extends Controller
         return new AdminResource($admin);
     }
 
-    public function destroy(Admin $admin)
+    public function destroy(Request $request, Admin $admin)
     {
+        // An admin cannot remove the account they are signed in with
+        if ((int) $request->user()->id === (int) $admin->id) {
+            return response()->json(['message' => 'You cannot delete your own account.'], 422);
+        }
+
+        // Sign the removed admin out everywhere
+        $admin->tokens()->delete();
         $admin->delete();
 
         return response()->noContent();

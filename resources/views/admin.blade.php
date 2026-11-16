@@ -280,6 +280,7 @@
 
             <div class="sidebar-section-title">Identity & Access</div>
             <a href="#" class="menu-link" onclick="switchAdminTab('users', this)">User Management</a>
+            <a href="#" class="menu-link" onclick="switchAdminTab('admins', this)">Admin Accounts</a>
 
             <div class="sidebar-section-title">Storefront Content</div>
             <a href="#" class="menu-link" onclick="switchAdminTab('categories', this)">Category Management</a>
@@ -323,6 +324,19 @@
                 <table>
                     <thead><tr><th>User ID</th><th>Customer Name</th><th>Email Address</th><th>Orders</th><th>Total Spent</th><th>Actions Control</th></tr></thead>
                     <tbody id="users-body"><tr><td colspan="6" class="table-note">Loading users...</td></tr></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PANEL SECTION 2B: ADMIN ACCOUNTS (live from the API) -->
+        <section id="tab-admins" class="workspace-view-panel">
+            <h1>Administrator Accounts</h1>
+            <p class="sub-heading">Create, edit or remove the accounts that can sign in to this terminal. You cannot delete your own account.</p>
+            <button class="action-btn primary-btn" onclick="openAdminModal(null)">Add Admin Account</button>
+            <div class="table-card">
+                <table>
+                    <thead><tr><th>Admin ID</th><th>Name</th><th>Email Address</th><th>Role</th><th>Created</th><th>Actions Control</th></tr></thead>
+                    <tbody id="admins-body"><tr><td colspan="6" class="table-note">Loading admin accounts...</td></tr></tbody>
                 </table>
             </div>
         </section>
@@ -485,6 +499,36 @@
         </div>
     </div>
 
+    <!-- Add / edit admin modal -->
+    <div class="modal-overlay" id="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-modal-title">
+        <div class="modal-card">
+            <h2 id="admin-modal-title">Add admin account</h2>
+            <p class="modal-error" id="admin-error" role="alert"></p>
+            <form id="admin-form" novalidate>
+                <div class="field">
+                    <label for="a-name">Full name</label>
+                    <input type="text" id="a-name" maxlength="255" required>
+                </div>
+                <div class="field">
+                    <label for="a-email">Email address</label>
+                    <input type="email" id="a-email" maxlength="255" required>
+                </div>
+                <div class="field">
+                    <label for="a-role">Role (optional)</label>
+                    <input type="text" id="a-role" maxlength="50" placeholder="For example: Manager">
+                </div>
+                <div class="field">
+                    <label for="a-password" id="a-password-label">Password</label>
+                    <input type="password" id="a-password" minlength="8" autocomplete="new-password">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="action-btn" onclick="closeModal('admin-modal')">Cancel</button>
+                    <button type="submit" class="action-btn primary-btn" id="admin-save" style="margin: 0;">Save admin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
@@ -589,6 +633,7 @@
 
             if (name === 'dashboard' || name === 'reports') loadStats();
             if (name === 'users') loadUsers();
+            if (name === 'admins') loadAdmins();
             if (name === 'categories') loadCategories();
             if (name === 'products' || name === 'inventory') loadProducts();
             if (name === 'orders') loadOrders();
@@ -699,6 +744,116 @@
                 showToast('User deleted');
                 loadUsers();
                 loadStats();
+            } catch (err) {
+                if (err.message !== 'AUTH') showToast(err.message);
+            }
+        }
+
+        // ---------- Admin accounts (GET/POST/PUT/DELETE /api/admins) ----------
+        let adminsCache = [];
+        let editingAdminId = null;
+
+        function renderAdmins() {
+            const body = document.getElementById('admins-body');
+            if (!adminsCache.length) {
+                body.innerHTML = '<tr><td colspan="6" class="table-note">No admin accounts found.</td></tr>';
+                return;
+            }
+            body.innerHTML = adminsCache.map(a => {
+                const isMe = Number(a.id) === Number(adminUser.id);
+                return '<tr>' +
+                    '<td class="money">#ADM-' + pad(a.id, 3) + '</td>' +
+                    '<td><strong>' + esc(a.name) + '</strong>' + (isMe ? ' <span class="badge green">You</span>' : '') + '</td>' +
+                    '<td>' + esc(a.email) + '</td>' +
+                    '<td>' + esc(a.role || '-') + '</td>' +
+                    '<td>' + esc(formatDate(a.created_at) || '-') + '</td>' +
+                    '<td>' +
+                        '<button class="action-btn" onclick="openAdminModal(' + Number(a.id) + ')">Edit</button>' +
+                        (isMe ? '' : '<button class="action-btn danger" onclick="deleteAdmin(' + Number(a.id) + ')">Delete</button>') +
+                    '</td>' +
+                '</tr>';
+            }).join('');
+        }
+
+        async function loadAdmins() {
+            try {
+                const json = await api('/api/admins');
+                adminsCache = json.data || [];
+                renderAdmins();
+            } catch (err) {
+                if (err.message !== 'AUTH') document.getElementById('admins-body').innerHTML = '<tr><td colspan="6" class="table-note">Could not load admin accounts.</td></tr>';
+            }
+        }
+
+        function openAdminModal(id) {
+            editingAdminId = id;
+            showModalError('admin-error', '');
+            document.getElementById('admin-form').reset();
+
+            if (id === null) {
+                document.getElementById('admin-modal-title').textContent = 'Add admin account';
+                document.getElementById('a-password-label').textContent = 'Password (minimum 8 characters)';
+            } else {
+                const a = adminsCache.find(item => Number(item.id) === id);
+                if (!a) return;
+                document.getElementById('admin-modal-title').textContent = 'Edit admin #ADM-' + pad(a.id, 3);
+                document.getElementById('a-name').value = a.name || '';
+                document.getElementById('a-email').value = a.email || '';
+                document.getElementById('a-role').value = a.role || '';
+                document.getElementById('a-password-label').textContent = 'New password (leave empty to keep the current one)';
+            }
+            openModal('admin-modal');
+            document.getElementById('a-name').focus();
+        }
+
+        document.getElementById('admin-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            showModalError('admin-error', '');
+
+            const name = document.getElementById('a-name').value.trim();
+            const email = document.getElementById('a-email').value.trim();
+            const role = document.getElementById('a-role').value.trim();
+            const password = document.getElementById('a-password').value;
+            const isNew = editingAdminId === null;
+
+            if (!name || !email) {
+                showModalError('admin-error', 'Name and email are required.');
+                return;
+            }
+            if (isNew && password.length < 8) {
+                showModalError('admin-error', 'The password needs at least 8 characters.');
+                return;
+            }
+
+            const payload = { name: name, email: email };
+            if (role) payload.role = role;
+            if (password) payload.password = password;
+
+            const saveBtn = document.getElementById('admin-save');
+            saveBtn.disabled = true;
+            try {
+                await api(isNew ? '/api/admins' : '/api/admins/' + editingAdminId, {
+                    method: isNew ? 'POST' : 'PUT',
+                    headers: JSON_HEADERS,
+                    body: JSON.stringify(payload)
+                });
+                closeModal('admin-modal');
+                showToast(isNew ? 'Admin account created' : 'Admin account updated');
+                loadAdmins();
+            } catch (err) {
+                if (err.message !== 'AUTH') showModalError('admin-error', err.message);
+            }
+            saveBtn.disabled = false;
+        });
+
+        async function deleteAdmin(id) {
+            const a = adminsCache.find(item => Number(item.id) === id);
+            if (!a) return;
+            if (!confirm('Delete the admin account of ' + a.name + '? They will be signed out everywhere.')) return;
+            try {
+                await api('/api/admins/' + id, { method: 'DELETE' });
+                showToast('Admin account deleted');
+                loadAdmins();
             } catch (err) {
                 if (err.message !== 'AUTH') showToast(err.message);
             }
