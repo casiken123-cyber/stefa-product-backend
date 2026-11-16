@@ -18,6 +18,10 @@ Route::get('/shop', function (\Illuminate\Http\Request $request) {
 
     $products = $query->get();
 
+    // Attach each product's reviews (written by customers with a completed order)
+    $reviews = \App\Models\Review::with('user')->latest()->get()->groupBy('product_id');
+    $products->each(fn ($product) => $product->setRelation('reviews', $reviews->get($product->id, collect())));
+
     return view('shop', compact('products'));
 });
 
@@ -30,4 +34,3 @@ Route::view('/profile', 'profile');
 Route::view('/checkout', 'order');
 // Administration Management Module Gateway Route
 Route::view('/admin', 'admin');
-

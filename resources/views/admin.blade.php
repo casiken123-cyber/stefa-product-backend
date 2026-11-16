@@ -200,8 +200,10 @@
         }
         .order-items-cell { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
         .money { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+        .stars { color: #E0A400; letter-spacing: 2px; white-space: nowrap; font-size: 15px; }
+        .comment-cell { max-width: 320px; font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
 
-        /* Product modal */
+        /* Modals (product, user, category) */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -242,6 +244,11 @@
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
         .modal-actions .action-btn { margin: 0; padding: 10px 18px; font-size: 13px; }
         .image-preview { width: 84px; height: 84px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line); background: var(--cloud); margin-top: 6px; display: none; }
+        .info-lines { background: var(--cloud); border: 1px solid var(--line); border-radius: 12px; padding: 6px 16px; margin-bottom: 16px; }
+        .info-lines div { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+        .info-lines div:last-child { border-bottom: none; }
+        .info-lines span { color: var(--ink-soft); font-weight: 600; }
+        .info-lines em { font-style: normal; text-align: right; word-break: break-word; }
 
         .toast {
             position: fixed;
@@ -308,33 +315,27 @@
             </div>
         </section>
 
-        <!-- PANEL SECTION 2: USER MANAGEMENT DIRECTORY -->
+        <!-- PANEL SECTION 2: USER MANAGEMENT DIRECTORY (live from the API) -->
         <section id="tab-users" class="workspace-view-panel">
             <h1>User Account Directory</h1>
-            <p class="sub-heading">View, evaluate credentials data configurations, and update active system buyers.</p>
+            <p class="sub-heading">View customer details, update their name and email, or remove accounts that have no orders.</p>
             <div class="table-card">
                 <table>
-                    <thead><tr><th>User Identification ID</th><th>Customer Name</th><th>Email Address</th><th>Status Badge</th><th>Actions Control</th></tr></thead>
-                    <tbody>
-                        <tr><td>#USR-0824</td><td><strong>Stefan Dev</strong></td><td>stefan@example.com</td><td><span class="badge green">Active Buyer</span></td><td><button class="action-btn" onclick="alert('Viewing User: Stefan Dev');">User Details</button><button class="action-btn" onclick="alert('Form Field Loaded: Edit User #USR-0824');">Edit User</button></td></tr>
-                        <tr><td>#USR-0911</td><td><strong>Ken User</strong></td><td>ken@example.com</td><td><span class="badge green">Active Buyer</span></td><td><button class="action-btn">User Details</button><button class="action-btn">Edit User</button></td></tr>
-                    </tbody>
+                    <thead><tr><th>User ID</th><th>Customer Name</th><th>Email Address</th><th>Orders</th><th>Total Spent</th><th>Actions Control</th></tr></thead>
+                    <tbody id="users-body"><tr><td colspan="6" class="table-note">Loading users...</td></tr></tbody>
                 </table>
             </div>
         </section>
 
-        <!-- PANEL SECTION 3: CATEGORIES ALLOCATIONS MANAGEMENT -->
+        <!-- PANEL SECTION 3: CATEGORIES ALLOCATIONS MANAGEMENT (live from the API) -->
         <section id="tab-categories" class="workspace-view-panel">
             <h1>Category Inventory Framework</h1>
-            <p class="sub-heading">Add, update taxonomy metrics classifications, or audit store departments parameters.</p>
-            <button class="action-btn primary-btn" onclick="alert('Modal Box Open: Add New Category Fields Sheet...');">Add Category Selection</button>
+            <p class="sub-heading">Add, rename or remove store departments. Renaming a category also updates its products.</p>
+            <button class="action-btn primary-btn" onclick="openCategoryModal(null)">Add Category Selection</button>
             <div class="table-card">
                 <table>
                     <thead><tr><th>System Department ID</th><th>Category Title Name</th><th>Products Bound Count</th><th>Actions Control</th></tr></thead>
-                    <tbody>
-                        <tr><td>#CAT-101</td><td><strong>Sneakers</strong></td><td>12 Items</td><td><button class="action-btn" onclick="alert('Category Hierarchy: Category Details #CAT-101');">Category Details</button><button class="action-btn" onclick="alert('Form Field Loaded: Edit Category #CAT-101');">Edit Category</button></td></tr>
-                        <tr><td>#CAT-102</td><td><strong>Audio Appliances</strong></td><td>8 Items</td><td><button class="action-btn">Category Details</button><button class="action-btn">Edit Category</button></td></tr>
-                    </tbody>
+                    <tbody id="categories-body"><tr><td colspan="4" class="table-note">Loading categories...</td></tr></tbody>
                 </table>
             </div>
         </section>
@@ -370,19 +371,20 @@
             <p class="sub-heading">Review every order and update its fulfillment status.</p>
             <div class="table-card">
                 <table>
-                    <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Placed</th><th>Status</th></tr></thead>
-                    <tbody id="orders-body"><tr><td colspan="6" class="table-note">Loading orders...</td></tr></tbody>
+                    <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Placed</th><th>Status</th><th>Delivery Update</th></tr></thead>
+                    <tbody id="orders-body"><tr><td colspan="7" class="table-note">Loading orders...</td></tr></tbody>
                 </table>
             </div>
         </section>
 
-        <!-- PANEL SECTION 7: BUYER REVIEWS -->
+        <!-- PANEL SECTION 7: BUYER REVIEWS (live from the API) -->
         <section id="tab-reviews" class="workspace-view-panel">
             <h1>Buyer Reviews</h1>
-            <p class="sub-heading">Customer feedback on delivered products.</p>
+            <p class="sub-heading">Feedback customers left on products from their completed orders. Remove reviews that break your rules.</p>
             <div class="table-card">
                 <table>
-                    <tbody><tr><td class="table-note">Reviews are not connected to the backend yet. There is no reviews API, so nothing is stored.</td></tr></tbody>
+                    <thead><tr><th>Product</th><th>Customer</th><th>Rating</th><th>Comment</th><th>Date</th><th>Actions Control</th></tr></thead>
+                    <tbody id="reviews-body"><tr><td colspan="6" class="table-note">Loading reviews...</td></tr></tbody>
                 </table>
             </div>
         </section>
@@ -426,12 +428,8 @@
                 </div>
                 <div class="field">
                     <label for="p-category">Category</label>
-                    <input type="text" id="p-category" list="category-options" maxlength="255" placeholder="Sneakers, Audio, Accessories...">
-                    <datalist id="category-options">
-                        <option value="Sneakers"></option>
-                        <option value="Audio"></option>
-                        <option value="Accessories"></option>
-                    </datalist>
+                    <input type="text" id="p-category" list="category-options" maxlength="255" placeholder="Pick a category or type a new one">
+                    <datalist id="category-options"></datalist>
                 </div>
                 <div class="field">
                     <label for="p-image">Product image (JPG, PNG or WEBP, max 2 MB)</label>
@@ -439,8 +437,49 @@
                     <img class="image-preview" id="p-image-preview" alt="Image preview">
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="action-btn" onclick="closeProductModal()">Cancel</button>
+                    <button type="button" class="action-btn" onclick="closeModal('product-modal')">Cancel</button>
                     <button type="submit" class="action-btn primary-btn" id="product-save" style="margin: 0;">Save product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User details / edit modal -->
+    <div class="modal-overlay" id="user-modal" role="dialog" aria-modal="true" aria-labelledby="user-modal-title">
+        <div class="modal-card">
+            <h2 id="user-modal-title">User details</h2>
+            <p class="modal-error" id="user-error" role="alert"></p>
+            <form id="user-form" novalidate>
+                <div class="field">
+                    <label for="u-name">Full name</label>
+                    <input type="text" id="u-name" maxlength="255" required>
+                </div>
+                <div class="field">
+                    <label for="u-email">Email address</label>
+                    <input type="email" id="u-email" maxlength="255" required>
+                </div>
+                <div class="info-lines" id="user-info"></div>
+                <div class="modal-actions">
+                    <button type="button" class="action-btn" onclick="closeModal('user-modal')">Close</button>
+                    <button type="submit" class="action-btn primary-btn" id="user-save" style="margin: 0;">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add / rename category modal -->
+    <div class="modal-overlay" id="category-modal" role="dialog" aria-modal="true" aria-labelledby="category-modal-title">
+        <div class="modal-card">
+            <h2 id="category-modal-title">Add category</h2>
+            <p class="modal-error" id="category-error" role="alert"></p>
+            <form id="category-form" novalidate>
+                <div class="field">
+                    <label for="c-name">Category name</label>
+                    <input type="text" id="c-name" maxlength="255" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="action-btn" onclick="closeModal('category-modal')">Cancel</button>
+                    <button type="submit" class="action-btn primary-btn" id="category-save" style="margin: 0;">Save category</button>
                 </div>
             </form>
         </div>
@@ -483,6 +522,7 @@
             const d = new Date(iso);
             return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
+        function pad(n, size) { return String(n).padStart(size, '0'); }
 
         const FALLBACK_THUMB = 'data:image/svg+xml;utf8,' + encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 68 68"><rect width="68" height="68" fill="#F3F4EF"/>' +
@@ -520,6 +560,26 @@
             return json;
         }
 
+        const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
+        // ---------- Modals ----------
+        function openModal(id) { document.getElementById(id).classList.add('show'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+        function showModalError(id, text) {
+            const box = document.getElementById(id);
+            box.textContent = text;
+            box.style.display = text ? 'block' : 'none';
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) overlay.classList.remove('show');
+            });
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') document.querySelectorAll('.modal-overlay').forEach(o => o.classList.remove('show'));
+        });
+
         // ---------- Tabs ----------
         function switchAdminTab(name, link) {
             document.querySelectorAll('.workspace-view-panel').forEach(p => p.classList.remove('active'));
@@ -528,8 +588,11 @@
             if (link) link.classList.add('active');
 
             if (name === 'dashboard' || name === 'reports') loadStats();
+            if (name === 'users') loadUsers();
+            if (name === 'categories') loadCategories();
             if (name === 'products' || name === 'inventory') loadProducts();
             if (name === 'orders') loadOrders();
+            if (name === 'reviews') loadReviews();
         }
 
         // ---------- Dashboard and sales report (GET /api/admin/stats) ----------
@@ -545,6 +608,194 @@
                 document.getElementById('rep-orders').textContent = s.orders;
                 document.getElementById('rep-avg').textContent = money(s.orders ? s.sales / s.orders : 0);
                 document.getElementById('rep-products').textContent = s.products;
+            } catch (err) {
+                if (err.message !== 'AUTH') showToast(err.message);
+            }
+        }
+
+        // ---------- Users (GET /api/admin/users, PUT and DELETE /api/admin/users/{id}) ----------
+        let usersCache = [];
+        let editingUserId = null;
+
+        function renderUsers() {
+            const body = document.getElementById('users-body');
+            if (!usersCache.length) {
+                body.innerHTML = '<tr><td colspan="6" class="table-note">No customers have registered yet.</td></tr>';
+                return;
+            }
+            body.innerHTML = usersCache.map(u => (
+                '<tr>' +
+                    '<td class="money">#USR-' + pad(u.id, 4) + '</td>' +
+                    '<td><strong>' + esc(u.name) + '</strong></td>' +
+                    '<td>' + esc(u.email) + '</td>' +
+                    '<td>' + Number(u.orders_count) + '</td>' +
+                    '<td class="money">' + money(u.spent) + '</td>' +
+                    '<td>' +
+                        '<button class="action-btn" onclick="openUserModal(' + Number(u.id) + ')">Details / Edit</button>' +
+                        '<button class="action-btn danger" onclick="deleteUser(' + Number(u.id) + ')">Delete</button>' +
+                    '</td>' +
+                '</tr>'
+            )).join('');
+        }
+
+        async function loadUsers() {
+            try {
+                const json = await api('/api/admin/users');
+                usersCache = json.data || [];
+                renderUsers();
+            } catch (err) {
+                if (err.message !== 'AUTH') document.getElementById('users-body').innerHTML = '<tr><td colspan="6" class="table-note">Could not load users.</td></tr>';
+            }
+        }
+
+        function openUserModal(id) {
+            const u = usersCache.find(item => Number(item.id) === id);
+            if (!u) return;
+            editingUserId = id;
+            showModalError('user-error', '');
+            document.getElementById('user-modal-title').textContent = 'User #USR-' + pad(u.id, 4);
+            document.getElementById('u-name').value = u.name || '';
+            document.getElementById('u-email').value = u.email || '';
+            document.getElementById('user-info').innerHTML =
+                '<div><span>Phone</span><em>' + esc(u.phone || '-') + '</em></div>' +
+                '<div><span>City / region</span><em>' + esc(u.city || '-') + '</em></div>' +
+                '<div><span>Delivery address</span><em>' + esc(u.address || '-') + '</em></div>' +
+                '<div><span>Orders placed</span><em>' + Number(u.orders_count) + '</em></div>' +
+                '<div><span>Total spent</span><em>' + money(u.spent) + '</em></div>' +
+                '<div><span>Joined</span><em>' + esc(formatDate(u.created_at)) + '</em></div>';
+            openModal('user-modal');
+        }
+
+        document.getElementById('user-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            showModalError('user-error', '');
+
+            const saveBtn = document.getElementById('user-save');
+            saveBtn.disabled = true;
+            try {
+                await api('/api/admin/users/' + editingUserId, {
+                    method: 'PUT',
+                    headers: JSON_HEADERS,
+                    body: JSON.stringify({
+                        name: document.getElementById('u-name').value.trim(),
+                        email: document.getElementById('u-email').value.trim()
+                    })
+                });
+                closeModal('user-modal');
+                showToast('User updated');
+                loadUsers();
+            } catch (err) {
+                if (err.message !== 'AUTH') showModalError('user-error', err.message);
+            }
+            saveBtn.disabled = false;
+        });
+
+        async function deleteUser(id) {
+            const u = usersCache.find(item => Number(item.id) === id);
+            if (!u) return;
+            if (!confirm('Delete the account of ' + u.name + '? This cannot be undone.')) return;
+            try {
+                await api('/api/admin/users/' + id, { method: 'DELETE' });
+                showToast('User deleted');
+                loadUsers();
+                loadStats();
+            } catch (err) {
+                if (err.message !== 'AUTH') showToast(err.message);
+            }
+        }
+
+        // ---------- Categories (GET/POST/PUT/DELETE /api/categories) ----------
+        let categoriesCache = [];
+        let editingCategoryId = null;
+
+        function fillCategoryOptions() {
+            document.getElementById('category-options').innerHTML =
+                categoriesCache.map(c => '<option value="' + esc(c.name) + '"></option>').join('');
+        }
+
+        function renderCategories() {
+            const body = document.getElementById('categories-body');
+            if (!categoriesCache.length) {
+                body.innerHTML = '<tr><td colspan="4" class="table-note">No categories yet. Click "Add Category Selection" to create one.</td></tr>';
+                return;
+            }
+            body.innerHTML = categoriesCache.map(c => (
+                '<tr>' +
+                    '<td class="money">#CAT-' + pad(c.id, 3) + '</td>' +
+                    '<td><strong>' + esc(c.name) + '</strong></td>' +
+                    '<td>' + Number(c.products_count) + ' Items</td>' +
+                    '<td>' +
+                        '<button class="action-btn" onclick="openCategoryModal(' + Number(c.id) + ')">Edit Category</button>' +
+                        '<button class="action-btn danger" onclick="deleteCategory(' + Number(c.id) + ')">Delete</button>' +
+                    '</td>' +
+                '</tr>'
+            )).join('');
+        }
+
+        async function loadCategories() {
+            try {
+                const json = await api('/api/categories');
+                categoriesCache = json.data || [];
+                renderCategories();
+                fillCategoryOptions();
+            } catch (err) {
+                if (err.message !== 'AUTH') document.getElementById('categories-body').innerHTML = '<tr><td colspan="4" class="table-note">Could not load categories.</td></tr>';
+            }
+        }
+
+        function openCategoryModal(id) {
+            editingCategoryId = id;
+            showModalError('category-error', '');
+            const nameInput = document.getElementById('c-name');
+            if (id === null) {
+                document.getElementById('category-modal-title').textContent = 'Add category';
+                nameInput.value = '';
+            } else {
+                const c = categoriesCache.find(item => Number(item.id) === id);
+                if (!c) return;
+                document.getElementById('category-modal-title').textContent = 'Rename category';
+                nameInput.value = c.name;
+            }
+            openModal('category-modal');
+            nameInput.focus();
+        }
+
+        document.getElementById('category-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            showModalError('category-error', '');
+
+            const name = document.getElementById('c-name').value.trim();
+            if (!name) {
+                showModalError('category-error', 'Enter a category name.');
+                return;
+            }
+
+            const saveBtn = document.getElementById('category-save');
+            saveBtn.disabled = true;
+            try {
+                const isNew = editingCategoryId === null;
+                await api(isNew ? '/api/categories' : '/api/categories/' + editingCategoryId, {
+                    method: isNew ? 'POST' : 'PUT',
+                    headers: JSON_HEADERS,
+                    body: JSON.stringify({ name: name })
+                });
+                closeModal('category-modal');
+                showToast(isNew ? 'Category added' : 'Category renamed');
+                loadCategories();
+            } catch (err) {
+                if (err.message !== 'AUTH') showModalError('category-error', err.message);
+            }
+            saveBtn.disabled = false;
+        });
+
+        async function deleteCategory(id) {
+            const c = categoriesCache.find(item => Number(item.id) === id);
+            if (!c) return;
+            if (!confirm('Delete the category "' + c.name + '"?')) return;
+            try {
+                await api('/api/categories/' + id, { method: 'DELETE' });
+                showToast('Category deleted');
+                loadCategories();
             } catch (err) {
                 if (err.message !== 'AUTH') showToast(err.message);
             }
@@ -637,7 +888,7 @@
             try {
                 await api('/api/products/' + id, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: JSON_HEADERS,
                     body: JSON.stringify({ stock: stock })
                 });
                 showToast('Stock updated');
@@ -662,24 +913,21 @@
             }
         }
 
-        // ---------- Add / edit modal ----------
+        // ---------- Add / edit product modal ----------
         let editingId = null;
         const productForm = document.getElementById('product-form');
         const imageInput = document.getElementById('p-image');
         const imagePreview = document.getElementById('p-image-preview');
 
-        function showProductError(text) {
-            const box = document.getElementById('product-error');
-            box.textContent = text;
-            box.style.display = text ? 'block' : 'none';
-        }
-
         function openProductModal(id) {
             editingId = id;
             productForm.reset();
-            showProductError('');
+            showModalError('product-error', '');
             imagePreview.style.display = 'none';
             imagePreview.removeAttribute('src');
+
+            // The category list comes from the categories table
+            loadCategories();
 
             if (id === null) {
                 document.getElementById('product-modal-title').textContent = 'Add product';
@@ -697,12 +945,8 @@
                     imagePreview.style.display = 'block';
                 }
             }
-            document.getElementById('product-modal').classList.add('show');
+            openModal('product-modal');
             document.getElementById('p-name').focus();
-        }
-
-        function closeProductModal() {
-            document.getElementById('product-modal').classList.remove('show');
         }
 
         imageInput.addEventListener('change', function () {
@@ -714,13 +958,13 @@
 
         productForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            showProductError('');
+            showModalError('product-error', '');
 
             const name = document.getElementById('p-name').value.trim();
             const price = document.getElementById('p-price').value;
             const stock = document.getElementById('p-stock').value;
             if (!name || price === '' || stock === '') {
-                showProductError('Name, price and stock are required.');
+                showModalError('product-error', 'Name, price and stock are required.');
                 return;
             }
 
@@ -745,23 +989,16 @@
 
             try {
                 await api(url, { method: 'POST', body: fd });
-                closeProductModal();
+                closeModal('product-modal');
                 showToast(editingId === null ? 'Product added' : 'Product updated');
                 loadProducts();
                 loadStats();
             } catch (err) {
-                if (err.message !== 'AUTH') showProductError(err.message);
+                if (err.message !== 'AUTH') showModalError('product-error', err.message);
             }
 
             saveBtn.disabled = false;
             saveBtn.textContent = 'Save product';
-        });
-
-        document.getElementById('product-modal').addEventListener('click', function (e) {
-            if (e.target === this) closeProductModal();
-        });
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeProductModal();
         });
 
         // ---------- Orders (GET /api/admin/orders, PUT /api/admin/orders/{id}) ----------
@@ -777,12 +1014,13 @@
             ).join('');
 
             return '<tr>' +
-                '<td class="money">#STF-' + String(o.id).padStart(5, '0') + '</td>' +
+                '<td class="money">#STF-' + pad(o.id, 5) + '</td>' +
                 '<td>' + customer + '</td>' +
                 '<td class="order-items-cell">' + (items || '-') + '</td>' +
                 '<td class="money">' + money(o.total) + '</td>' +
                 '<td>' + esc(formatDate(o.created_at)) + '</td>' +
                 '<td><select class="status-select" onchange="changeOrderStatus(' + Number(o.id) + ', this)">' + options + '</select></td>' +
+                '<td><button class="action-btn" onclick="notifyCustomer(' + Number(o.id) + ')">Send update</button></td>' +
             '</tr>';
         }
 
@@ -793,9 +1031,9 @@
                 const orders = json.data || [];
                 body.innerHTML = orders.length
                     ? orders.map(orderRowHtml).join('')
-                    : '<tr><td colspan="6" class="table-note">No orders yet.</td></tr>';
+                    : '<tr><td colspan="7" class="table-note">No orders yet.</td></tr>';
             } catch (err) {
-                if (err.message !== 'AUTH') body.innerHTML = '<tr><td colspan="6" class="table-note">Could not load orders.</td></tr>';
+                if (err.message !== 'AUTH') body.innerHTML = '<tr><td colspan="7" class="table-note">Could not load orders.</td></tr>';
             }
         }
 
@@ -804,10 +1042,10 @@
             try {
                 await api('/api/admin/orders/' + id, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: JSON_HEADERS,
                     body: JSON.stringify({ status: select.value })
                 });
-                showToast('Order #STF-' + String(id).padStart(5, '0') + ' set to ' + select.value);
+                showToast('Order #STF-' + pad(id, 5) + ' set to ' + select.value + '. The customer was notified.');
                 loadStats();
             } catch (err) {
                 if (err.message !== 'AUTH') {
@@ -816,6 +1054,73 @@
                 }
             }
             select.disabled = false;
+        }
+
+        // Send the customer a custom delivery update (POST /api/admin/orders/{id}/notify)
+        async function notifyCustomer(id) {
+            const message = prompt('Delivery update for order #STF-' + pad(id, 5) + ' (the customer sees this in Notifications):');
+            if (message === null) return;
+            if (!message.trim()) {
+                showToast('Write a message first.');
+                return;
+            }
+            try {
+                await api('/api/admin/orders/' + id + '/notify', {
+                    method: 'POST',
+                    headers: JSON_HEADERS,
+                    body: JSON.stringify({ message: message.trim() })
+                });
+                showToast('Update sent to the customer');
+            } catch (err) {
+                if (err.message !== 'AUTH') showToast(err.message);
+            }
+        }
+
+        // ---------- Reviews (GET /api/admin/reviews, DELETE /api/admin/reviews/{id}) ----------
+        let reviewsCache = [];
+
+        function starText(rating) {
+            const n = Math.max(0, Math.min(5, Number(rating) || 0));
+            return '\u2605'.repeat(n) + '\u2606'.repeat(5 - n);
+        }
+
+        function renderReviews() {
+            const body = document.getElementById('reviews-body');
+            if (!reviewsCache.length) {
+                body.innerHTML = '<tr><td colspan="6" class="table-note">No reviews yet. Customers can review products after an order is marked completed.</td></tr>';
+                return;
+            }
+            body.innerHTML = reviewsCache.map(r => (
+                '<tr>' +
+                    '<td><strong>' + esc(r.product ? r.product.name : 'Deleted product') + '</strong></td>' +
+                    '<td>' + esc(r.customer ? r.customer.name : 'Unknown') + '</td>' +
+                    '<td><span class="stars">' + starText(r.rating) + '</span></td>' +
+                    '<td class="comment-cell">' + esc(r.comment) + '</td>' +
+                    '<td>' + esc(formatDate(r.created_at)) + '</td>' +
+                    '<td><button class="action-btn danger" onclick="deleteReview(' + Number(r.id) + ')">Delete</button></td>' +
+                '</tr>'
+            )).join('');
+        }
+
+        async function loadReviews() {
+            try {
+                const json = await api('/api/admin/reviews');
+                reviewsCache = json.data || [];
+                renderReviews();
+            } catch (err) {
+                if (err.message !== 'AUTH') document.getElementById('reviews-body').innerHTML = '<tr><td colspan="6" class="table-note">Could not load reviews.</td></tr>';
+            }
+        }
+
+        async function deleteReview(id) {
+            if (!confirm('Delete this review? This cannot be undone.')) return;
+            try {
+                await api('/api/admin/reviews/' + id, { method: 'DELETE' });
+                showToast('Review deleted');
+                loadReviews();
+            } catch (err) {
+                if (err.message !== 'AUTH') showToast(err.message);
+            }
         }
 
         // ---------- Exit: revoke the token on the server, clear the session ----------

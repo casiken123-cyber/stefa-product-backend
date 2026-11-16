@@ -153,7 +153,24 @@
         .cart-count.bump { animation: bump 0.4s var(--ease-spring); }
         @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
 
-        .nav-avatar-link { padding: 0 !important; margin-left: 6px; border-radius: 50% !important; line-height: 0; }
+        .nav-avatar-link { padding: 0 !important; margin-left: 6px; border-radius: 50% !important; line-height: 0; position: relative; }
+        .avatar-dot {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 9px;
+            background: var(--mango);
+            color: var(--ink);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 18px;
+            text-align: center;
+            border: 2px solid var(--surface);
+        }
         .nav-avatar {
             width: 40px;
             height: 40px;
@@ -360,6 +377,11 @@
         .buy-btn:hover { background: var(--mango-deep); transform: translateY(-1px); }
         .buy-btn:active { transform: scale(0.97); transition-duration: 0.12s; }
 
+        .stock-note { font-size: 12px; font-weight: 600; width: fit-content; padding: 3px 10px; border-radius: 20px; }
+        .stock-note.low { background: #FFEDD5; color: #EA580C; }
+        .stock-note.out { background: #FBE9E7; color: #B63A3A; }
+        .buy-btn:disabled, .icon-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
         .empty-state { color: var(--ink-soft); font-size: 14px; padding: 24px 0; grid-column: 1 / -1; }
 
         /* Toast */
@@ -528,6 +550,7 @@
             transition: background 0.2s;
         }
         .review-submit-btn:hover { background: var(--mango-dark); }
+        .review-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .review-empty { font-size: 13px; color: var(--ink-soft); background: var(--cloud); border-radius: 14px; padding: 20px; text-align: center; }
         .review-item { border-bottom: 1px solid #F0F1EC; padding: 18px 4px; }
@@ -549,7 +572,11 @@
 </head>
 <body>
 
-    @php $activeCategory = request('category'); @endphp
+    @php
+        $activeCategory = request('category');
+        // The sidebar follows the categories the admin manages
+        $categoryNames = \App\Models\Category::orderBy('name')->pluck('name');
+    @endphp
 
     <!-- Top Navigation -->
     <nav>
@@ -592,9 +619,9 @@
             <h2>Categories</h2>
             <div class="filter-group">
                 <a href="/shop" class="filter-link {{ !$activeCategory ? 'active' : '' }}">All Products</a>
-                <a href="/shop?category=Sneakers" class="filter-link {{ $activeCategory === 'Sneakers' ? 'active' : '' }}">Sneakers</a>
-                <a href="/shop?category=Audio" class="filter-link {{ $activeCategory === 'Audio' ? 'active' : '' }}">Audio</a>
-                <a href="/shop?category=Accessories" class="filter-link {{ $activeCategory === 'Accessories' ? 'active' : '' }}">Accessories</a>
+                @foreach($categoryNames as $categoryName)
+                    <a href="/shop?category={{ urlencode($categoryName) }}" class="filter-link {{ $activeCategory === $categoryName ? 'active' : '' }}">{{ $categoryName }}</a>
+                @endforeach
             </div>
         </aside>
 
@@ -611,6 +638,7 @@
                          data-price="{{ $product->price }}"
                          data-image="{{ $product->image_url }}"
                          data-category="{{ $product->category }}"
+                         data-stock="{{ $product->stock }}"
                          data-description="{{ $product->description }}"
                          @if(isset($product->reviews) && count($product->reviews))
                          data-reviews='{{ json_encode($product->reviews->map(fn($r) => ["author" => $r->author_name ?? "Verified Buyer", "rating" => $r->rating, "comment" => $r->comment])) }}'
@@ -624,11 +652,16 @@
                             <span class="tag">{{ $product->category }}</span>
                             <p class="desc">{{ $product->description }}</p>
                             <span class="price">${{ number_format($product->price, 2) }}</span>
+                            @if($product->stock <= 0)
+                                <span class="stock-note out">Out of stock</span>
+                            @elseif($product->stock <= 5)
+                                <span class="stock-note low">Only {{ $product->stock }} left</span>
+                            @endif
                             <div class="card-actions">
-                                <button class="icon-btn" title="Add to Cart" aria-label="Add {{ $product->name }} to cart" onclick="event.stopPropagation(); addFromCard(this)">
+                                <button class="icon-btn" title="Add to Cart" aria-label="Add {{ $product->name }} to cart" onclick="event.stopPropagation(); addFromCard(this)" @if($product->stock <= 0) disabled @endif>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.5"></circle><circle cx="18" cy="21" r="1.5"></circle><path d="M2.5 3h2l2.7 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 8H6"></path></svg>
                                 </button>
-                                <button class="buy-btn" onclick="event.stopPropagation(); buyFromCard(this)">Buy Now</button>
+                                <button class="buy-btn" onclick="event.stopPropagation(); buyFromCard(this)" @if($product->stock <= 0) disabled @endif>Buy Now</button>
                             </div>
                         </div>
                     </div>
@@ -710,6 +743,22 @@
                         <img src="${DEFAULT_AVATAR}" class="nav-avatar" alt="Your profile">
                     </a>
                 `;
+
+                // A badge on the avatar when the customer has unread delivery updates
+                fetch('/api/notices', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('auth_token'), 'Accept': 'application/json' }
+                })
+                    .then(r => (r.ok ? r.json() : null))
+                    .then(j => {
+                        if (!j || Number(j.unread) < 1) return;
+                        const link = slot.querySelector('.nav-avatar-link');
+                        if (!link) return;
+                        const dot = document.createElement('span');
+                        dot.className = 'avatar-dot';
+                        dot.textContent = j.unread;
+                        link.appendChild(dot);
+                    })
+                    .catch(() => {});
             }
         }
 
@@ -795,9 +844,11 @@
             document.getElementById('search-empty').style.display = (visible === 0 && term) ? 'block' : 'none';
         });
 
-        // ---------- Modal review state (client-side only for this demo) ----------
+        // ---------- Modal reviews (saved through POST /api/reviews) ----------
         let currentModalReviews = [];
         let currentReviewRating = 0;
+        let currentModalProductId = null;
+        let currentModalCard = null;
 
         function renderModalReviews(reviews) {
             const reviewsList = document.getElementById('modal-reviews-list');
@@ -857,15 +908,70 @@
             });
         }
 
-        function submitReview() {
+        async function submitReview() {
             if (currentReviewRating === 0) {
                 showToast('Please select a star rating first.');
                 return;
             }
+
+            const token = localStorage.getItem('auth_token');
+            if (!token || localStorage.getItem('user_authenticated') !== 'true') {
+                showToast('Please log in to write a review.');
+                setTimeout(() => { window.location.href = '/login'; }, 1200);
+                return;
+            }
+
             const comment = document.getElementById('review-comment').value.trim();
-            currentModalReviews.push({ author: 'You', rating: currentReviewRating, comment: comment || '(No comment provided)' });
-            renderModalReviews(currentModalReviews);
-            toggleReviewForm(false);
+            if (!comment) {
+                showToast('Please write a short comment.');
+                return;
+            }
+
+            const submitBtn = document.querySelector('.review-submit-btn');
+            submitBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/reviews', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        product_id: currentModalProductId,
+                        rating: currentReviewRating,
+                        comment: comment
+                    })
+                });
+
+                if (res.status === 401) {
+                    showToast('Your session expired. Please log in again.');
+                    setTimeout(() => { window.location.href = '/login'; }, 1200);
+                    return;
+                }
+                if (res.status === 403) {
+                    showToast('Only customer accounts can write reviews.');
+                    return;
+                }
+
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const first = json.errors ? Object.values(json.errors)[0][0] : null;
+                    throw new Error(first || json.message || 'Could not submit your review.');
+                }
+
+                const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+                currentModalReviews.push({ author: user.name || 'You', rating: currentReviewRating, comment: comment });
+                if (currentModalCard) currentModalCard.dataset.reviews = JSON.stringify(currentModalReviews);
+                renderModalReviews(currentModalReviews);
+                toggleReviewForm(false);
+                showToast('Review submitted');
+            } catch (err) {
+                showToast(err.message);
+            } finally {
+                submitBtn.disabled = false;
+            }
         }
 
         function openProductModal(cardEl) {
@@ -889,11 +995,18 @@
             };
             document.getElementById('modal-buy-btn').onclick = function () { buyNowProduct(name, price, image, category); };
 
+            // Sold-out products cannot be added or bought
+            const soldOut = Number(cardEl.dataset.stock) <= 0;
+            modalCartBtn.disabled = soldOut;
+            document.getElementById('modal-buy-btn').disabled = soldOut;
+
             let reviews = [];
             if (cardEl.dataset.reviews) {
                 try { reviews = JSON.parse(cardEl.dataset.reviews); } catch (e) { reviews = []; }
             }
             currentModalReviews = reviews;
+            currentModalProductId = Number(cardEl.dataset.id);
+            currentModalCard = cardEl;
             toggleReviewForm(false);
             renderModalReviews(currentModalReviews);
 

@@ -51,7 +51,7 @@
 
         h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; }
 
-        a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+        a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
             outline: 3px solid rgba(255, 122, 41, 0.55);
             outline-offset: 2px;
         }
@@ -202,7 +202,7 @@
         .tab-bar {
             position: relative;
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             background: var(--surface);
             border: 1px solid var(--line);
             padding: 5px;
@@ -214,13 +214,14 @@
             top: 5px;
             bottom: 5px;
             left: 5px;
-            width: calc((100% - 10px) / 3);
+            width: calc((100% - 10px) / 4);
             border-radius: 11px;
             background: var(--mango-tint);
             transition: transform 0.45s var(--ease-out);
         }
         .tab-bar[data-index="1"] .tab-indicator { transform: translateX(100%); }
         .tab-bar[data-index="2"] .tab-indicator { transform: translateX(200%); }
+        .tab-bar[data-index="3"] .tab-indicator { transform: translateX(300%); }
         .tab-btn {
             position: relative;
             z-index: 1;
@@ -270,7 +271,7 @@
         .form-group:focus-within { transform: scale(1.01); }
 
         label { font-size: 12px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.04em; }
-        input, textarea {
+        input, textarea, select {
             padding: 13px 16px;
             border-radius: var(--radius-ctl);
             border: 1px solid var(--line);
@@ -281,8 +282,8 @@
             font-family: inherit;
             transition: border-color 0.2s var(--ease-in-out), background 0.2s var(--ease-in-out), box-shadow 0.2s var(--ease-in-out);
         }
-        input:hover, textarea:hover { border-color: #D3D6CD; }
-        input:focus, textarea:focus { border-color: var(--mango); background: var(--surface); box-shadow: var(--ring); }
+        input:hover, textarea:hover, select:hover { border-color: #D3D6CD; }
+        input:focus, textarea:focus, select:focus { border-color: var(--mango); background: var(--surface); box-shadow: var(--ring); }
         input[readonly] { color: var(--ink-faint); cursor: not-allowed; }
 
         /* Buttons */
@@ -360,6 +361,35 @@
         .order-body p.item-sub.cancelled-note { color: var(--danger); font-weight: 600; }
         .action-flex { display: flex; gap: 12px; align-items: center; }
         .price-tag { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 18px; letter-spacing: -0.02em; }
+        .reviewed-note { font-size: 13px; font-weight: 600; color: var(--success); }
+
+        .unread-badge {
+            display: none;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            margin-left: 8px;
+            border-radius: 10px;
+            background: var(--mango);
+            color: var(--ink);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 20px;
+            text-align: center;
+        }
+        .unread-badge.show { display: inline-block; }
+        .notice-item {
+            border: 1px solid var(--line);
+            border-radius: var(--radius-card);
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            background: var(--surface);
+        }
+        .notice-item:last-child { margin-bottom: 0; }
+        .notice-item.notice-new { border-color: var(--mango); background: var(--mango-tint); }
+        .notice-item p { margin: 0 0 6px; font-size: 14px; font-weight: 500; line-height: 1.5; }
+        .notice-item span { font-size: 12px; color: var(--ink-faint); }
 
         .empty-orders { color: var(--ink-soft); font-size: 14px; text-align: center; padding: 28px 0 8px; display: none; }
         .orders-status { color: var(--ink-soft); font-size: 14px; text-align: center; padding: 28px 0 8px; }
@@ -438,13 +468,14 @@
         <!-- Sidebar identity card -->
         <aside class="profile-card">
             <div class="avatar" id="avatar-initial" aria-hidden="true">S</div>
-            <h3 id="sidebar-name">Stefan Dev</h3>
-            <p class="profile-email" id="sidebar-email">stefan@example.com</p>
+            <h3 id="sidebar-name">Your account</h3>
+            <p class="profile-email" id="sidebar-email"></p>
 
             <div class="sidebar-menu">
                 <a href="#" class="sidebar-link active" data-tab="info-section">Account Settings</a>
                 <a href="#" class="sidebar-link" data-tab="orders-section">Order History</a>
                 <a href="#" class="sidebar-link" data-tab="checkout-section">Checkout Info</a>
+                <a href="#" class="sidebar-link" data-tab="notices-section">Notifications <span class="unread-badge" id="side-unread"></span></a>
                 <a href="/cart" class="sidebar-link">Cart</a>
                 <div class="logout-divider"></div>
                 <a href="/shop" class="sidebar-link style-logout" id="logout-link">Log Out</a>
@@ -458,9 +489,10 @@
                 <button class="tab-btn active" role="tab" data-tab="info-section">Account Settings</button>
                 <button class="tab-btn" role="tab" data-tab="orders-section">Order History</button>
                 <button class="tab-btn" role="tab" data-tab="checkout-section">Checkout Info</button>
+                <button class="tab-btn" role="tab" data-tab="notices-section">Notifications <span class="unread-badge" id="tab-unread"></span></button>
             </div>
 
-            <!-- TAB 1: Account settings -->
+            <!-- TAB 1: Account settings (saved through the API) -->
             <div id="info-section" class="tab-panel active">
                 <div class="details-panel">
                     <h2>Account information</h2>
@@ -468,31 +500,52 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="input-full-name">Full name</label>
-                                <input type="text" id="input-full-name" value="Stefan Dev" required>
+                                <input type="text" id="input-full-name" value="" required>
                             </div>
                             <div class="form-group">
                                 <label for="input-email">Email address</label>
-                                <input type="email" id="input-email" value="stefan@example.com" readonly>
+                                <input type="email" id="input-email" value="" readonly>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="input-phone">Contact phone number</label>
-                                <input type="text" id="input-phone" placeholder="+63 917 123 4567" value="+63 917 123 4567" required>
+                                <input type="text" id="input-phone" placeholder="+63 917 123 4567" value="" required>
                             </div>
                             <div class="form-group">
                                 <label for="input-city">Default shipping region / city</label>
-                                <input type="text" id="input-city" placeholder="Tagoloan, Misamis Oriental" value="Tagoloan, Misamis Oriental" required>
+                                <input type="text" id="input-city" placeholder="Tagoloan, Misamis Oriental" value="" required>
                             </div>
                         </div>
 
                         <div class="form-group" style="margin-bottom: 28px;">
                             <label for="input-address">Delivery street address</label>
-                            <input type="text" id="input-address" placeholder="House/Apartment Number, Street Name, Barangay Name" value="123 Emerald Street, Zone 4, Barangay Center" required>
+                            <input type="text" id="input-address" placeholder="House/Apartment Number, Street Name, Barangay Name" value="" required>
                         </div>
 
                         <button type="submit" class="save-btn green-btn">Save changes</button>
+                    </form>
+                </div>
+
+                <div class="details-panel">
+                    <h2>Change password</h2>
+                    <form id="password-form">
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="pw-current">Current password</label>
+                            <input type="password" id="pw-current" autocomplete="current-password" required>
+                        </div>
+                        <div class="form-row" style="margin-bottom: 28px;">
+                            <div class="form-group">
+                                <label for="pw-new">New password</label>
+                                <input type="password" id="pw-new" minlength="8" placeholder="Minimum 8 characters" autocomplete="new-password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="pw-confirm">Confirm new password</label>
+                                <input type="password" id="pw-confirm" minlength="8" autocomplete="new-password" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="save-btn green-btn">Update password</button>
                     </form>
                 </div>
             </div>
@@ -525,6 +578,16 @@
                             <p>Cash on Delivery is available at checkout.</p>
                             <a href="/checkout" class="save-btn secondary-btn" style="display: inline-flex; align-items: center; justify-content: center;">Go to checkout</a>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: Notifications (delivery updates the admin sends) -->
+            <div id="notices-section" class="tab-panel">
+                <div class="details-panel">
+                    <h2>Notifications</h2>
+                    <div id="notices-list">
+                        <p class="orders-status">Loading your notifications...</p>
                     </div>
                 </div>
             </div>
@@ -575,9 +638,14 @@
                 'Content-Type': 'application/json'
             };
         }
+        // First validation message from a failed response, or a fallback text
+        function errorText(json, fallback) {
+            if (json && json.errors) return Object.values(json.errors)[0][0];
+            return (json && json.message) || fallback;
+        }
 
         // ---------- Tabs ----------
-        const TAB_ORDER = ['info-section', 'orders-section', 'checkout-section'];
+        const TAB_ORDER = ['info-section', 'orders-section', 'checkout-section', 'notices-section'];
 
         function switchTab(sectionId) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -588,6 +656,7 @@
             document.querySelectorAll('.sidebar-link[data-tab]').forEach(l => l.classList.toggle('active', l.dataset.tab === sectionId));
 
             if (sectionId === 'orders-section') loadOrders();
+            if (sectionId === 'notices-section') loadNotices(true);
         }
 
         document.querySelectorAll('.tab-btn, .sidebar-link[data-tab]').forEach(el => {
@@ -600,7 +669,8 @@
             el.addEventListener('click', () => switchTab(el.dataset.tabJump));
         });
 
-        // ---------- Profile data: real account name/email, saved details ----------
+        // ---------- Profile data (GET/PUT /api/profile) ----------
+        // The browser keeps a copy so checkout can prefill the shipping form instantly.
         const authUser = readJSON('auth_user', {});
         const saved = readJSON('stefashop_profile', {});
 
@@ -612,11 +682,21 @@
             address: document.getElementById('input-address')
         };
 
-        fields.name.value = saved.name || authUser.name || fields.name.value;
-        fields.email.value = authUser.email || fields.email.value;
-        if (saved.phone) fields.phone.value = saved.phone;
-        if (saved.city) fields.city.value = saved.city;
-        if (saved.address) fields.address.value = saved.address;
+        // Show the cached values straight away, then replace them with the saved ones
+        fields.name.value = saved.name || authUser.name || '';
+        fields.email.value = authUser.email || '';
+        fields.phone.value = saved.phone || '';
+        fields.city.value = saved.city || '';
+        fields.address.value = saved.address || '';
+
+        function cacheProfile() {
+            localStorage.setItem('stefashop_profile', JSON.stringify({
+                name: fields.name.value.trim(),
+                phone: fields.phone.value.trim(),
+                city: fields.city.value.trim(),
+                address: fields.address.value.trim()
+            }));
+        }
 
         function refreshIdentity() {
             const name = fields.name.value.trim() || 'Your account';
@@ -624,25 +704,114 @@
             document.getElementById('sidebar-email').textContent = fields.email.value;
             document.getElementById('avatar-initial').textContent = name.charAt(0).toUpperCase();
 
-            document.getElementById('ship-summary').innerHTML = '';
+            const summary = document.getElementById('ship-summary');
+            summary.innerHTML = '';
             const lines = [name, fields.address.value, fields.city.value];
             lines.forEach((line, i) => {
-                if (i > 0) document.getElementById('ship-summary').appendChild(document.createElement('br'));
-                document.getElementById('ship-summary').appendChild(document.createTextNode(line));
+                if (i > 0) summary.appendChild(document.createElement('br'));
+                summary.appendChild(document.createTextNode(line));
             });
         }
         refreshIdentity();
 
-        document.getElementById('profile-info-form').addEventListener('submit', function (e) {
+        async function loadProfile() {
+            try {
+                const res = await fetch('/api/profile', { headers: authHeaders() });
+                if (res.status === 401) { sessionExpired(); return; }
+                if (!res.ok) return;
+
+                const json = await res.json();
+                const p = json.data || {};
+                fields.name.value = p.name || '';
+                fields.email.value = p.email || fields.email.value;
+                fields.phone.value = p.phone || '';
+                fields.city.value = p.city || '';
+                fields.address.value = p.address || '';
+                cacheProfile();
+                refreshIdentity();
+            } catch (err) {
+                // keep the cached values
+            }
+        }
+
+        document.getElementById('profile-info-form').addEventListener('submit', async function (e) {
             e.preventDefault();
-            localStorage.setItem('stefashop_profile', JSON.stringify({
-                name: fields.name.value.trim(),
-                phone: fields.phone.value.trim(),
-                city: fields.city.value.trim(),
-                address: fields.address.value.trim()
-            }));
-            refreshIdentity();
-            showToast('Profile updated');
+            const button = this.querySelector('button[type="submit"]');
+            button.disabled = true;
+
+            try {
+                const res = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({
+                        name: fields.name.value.trim(),
+                        phone: fields.phone.value.trim(),
+                        city: fields.city.value.trim(),
+                        address: fields.address.value.trim()
+                    })
+                });
+
+                if (res.status === 401) { sessionExpired(); return; }
+
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(errorText(json, 'Could not save your profile.'));
+
+                cacheProfile();
+                const user = readJSON('auth_user', {});
+                user.name = fields.name.value.trim();
+                localStorage.setItem('auth_user', JSON.stringify(user));
+                refreshIdentity();
+                showToast('Profile updated');
+            } catch (err) {
+                showToast(err.message);
+            }
+
+            button.disabled = false;
+        });
+
+        // ---------- Change password (PUT /api/profile/password) ----------
+        document.getElementById('password-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const current = document.getElementById('pw-current').value;
+            const next = document.getElementById('pw-new').value;
+            const confirmation = document.getElementById('pw-confirm').value;
+
+            if (next.length < 8) {
+                showToast('The new password needs at least 8 characters.');
+                return;
+            }
+            if (next !== confirmation) {
+                showToast('The new passwords do not match.');
+                return;
+            }
+
+            const button = this.querySelector('button[type="submit"]');
+            button.disabled = true;
+
+            try {
+                const res = await fetch('/api/profile/password', {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({
+                        current_password: current,
+                        password: next,
+                        password_confirmation: confirmation
+                    })
+                });
+
+                if (res.status === 401) { sessionExpired(); return; }
+
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(errorText(json, 'Could not change the password.'));
+
+                this.reset();
+                showToast('Password updated');
+            } catch (err) {
+                showToast(err.message);
+            }
+
+            button.disabled = false;
         });
 
         // ---------- Cart count ----------
@@ -661,6 +830,9 @@
             cancelled:  { label: 'Cancelled',           cls: 'cancelled' }
         };
 
+        let reviewedIds = new Set();      // product ids this customer already reviewed
+        const orderItemsById = {};        // normalised items per order, used by the review form
+
         function formatDate(iso) {
             const d = new Date(iso);
             if (isNaN(d.getTime())) return '';
@@ -672,14 +844,28 @@
             return (p && (p.name || (p.data && p.data.name))) || item.product_name || item.name || 'Item';
         }
 
+        function normalizeItem(item) {
+            const p = item.product && (item.product.data || item.product);
+            return {
+                name: itemName(item),
+                quantity: Number(item.quantity || 1),
+                productId: item.product_id || (p && p.id) || null
+            };
+        }
+
+        function needsReview(item) {
+            return !item.productId || !reviewedIds.has(Number(item.productId));
+        }
+
         function orderCardHtml(order) {
             const status = String(order.status || 'pending').toLowerCase();
             const meta = STATUS_META[status] || { label: status, cls: '' };
             const displayId = '#STF-' + String(order.id).padStart(5, '0');
-            const items = Array.isArray(order.items) ? order.items : [];
+            const items = (Array.isArray(order.items) ? order.items : []).map(normalizeItem);
+            orderItemsById[order.id] = items;
 
             const itemLines = items.length
-                ? items.map(it => '<p class="item-name">' + esc(itemName(it)) + ' (' + Number(it.quantity || 1) + 'x)</p>').join('')
+                ? items.map(it => '<p class="item-name">' + esc(it.name) + ' (' + it.quantity + 'x)</p>').join('')
                 : '<p class="item-name">Order items</p>';
 
             let subLine = '<p class="item-sub">Free standard shipping</p>';
@@ -687,7 +873,9 @@
 
             if (status === 'completed') {
                 subLine = '<p class="item-sub fulfilled">\u2713 Delivered and paid</p>';
-                action = '<button type="button" class="save-btn secondary-btn" onclick="openReview(this)">Leave a review</button>';
+                action = items.some(needsReview)
+                    ? '<button type="button" class="save-btn secondary-btn" onclick="openReview(this)">Leave a review</button>'
+                    : '<span class="reviewed-note">\u2713 Reviewed</span>';
             } else if (status === 'cancelled') {
                 subLine = '<p class="item-sub cancelled-note">This order was cancelled</p>';
                 action = '';
@@ -723,12 +911,22 @@
             }
 
             try {
-                const res = await fetch('/api/orders', { headers: authHeaders() });
+                const responses = await Promise.all([
+                    fetch('/api/orders', { headers: authHeaders() }),
+                    fetch('/api/reviews/mine', { headers: authHeaders() }).catch(() => null)
+                ]);
+                const res = responses[0];
+                const mineRes = responses[1];
 
                 if (res.status === 401) { sessionExpired(); return; }
                 if (res.status === 403) {
                     list.innerHTML = '<p class="orders-status">Order history is only available for customer accounts.</p>';
                     return;
+                }
+
+                if (mineRes && mineRes.ok) {
+                    const mine = await mineRes.json();
+                    reviewedIds = new Set((mine.data || []).map(r => Number(r.product_id)));
                 }
 
                 const json = await res.json();
@@ -764,7 +962,7 @@
                 if (res.status === 401) { sessionExpired(); return; }
 
                 const json = await res.json().catch(() => ({}));
-                if (!res.ok) throw new Error(json.message || 'Could not cancel the order.');
+                if (!res.ok) throw new Error(errorText(json, 'Could not cancel the order.'));
 
                 showToast('Order ' + label + ' cancelled');
                 loadOrders();
@@ -774,14 +972,34 @@
             }
         }
 
-        // ---------- Review (the form is created on demand inside the completed order) ----------
+        // ---------- Reviews (POST /api/reviews) ----------
         let reviewCount = 0;
 
-        function reviewFormHtml() {
+        // Older carts may not carry a product id, so look it up by name
+        async function resolveProductId(name) {
+            const res = await fetch('/api/products?search=' + encodeURIComponent(name), { headers: authHeaders() });
+            if (res.status === 401) { sessionExpired(); throw new Error('AUTH'); }
+            const json = await res.json();
+            const match = (json.data || []).find(p => p.name === name);
+            if (!match) throw new Error('Product not found: ' + name);
+            return match.id;
+        }
+
+        function reviewFormHtml(items) {
+            const options = items
+                .map((it, i) => ({ it: it, i: i }))
+                .filter(x => needsReview(x.it))
+                .map(x => '<option value="' + x.i + '">' + esc(x.it.name) + '</option>')
+                .join('');
+
             return '' +
                 '<h4>Write your product review</h4>' +
                 '<form class="review-form">' +
                     '<div style="display: grid; gap: 20px; margin-bottom: 20px;">' +
+                        '<div class="form-group">' +
+                            '<label for="review-product-' + reviewCount + '">Product</label>' +
+                            '<select class="review-product" id="review-product-' + reviewCount + '">' + options + '</select>' +
+                        '</div>' +
                         '<div class="form-group">' +
                             '<label>Star rating</label>' +
                             '<div class="star-rating">' +
@@ -805,24 +1023,53 @@
 
         function openReview(btn) {
             const box = btn.closest('.order-item-box');
+            const items = orderItemsById[box.dataset.id] || [];
             let formBox = box.querySelector('.review-form-box');
 
             if (!formBox) {
                 reviewCount++;
                 formBox = document.createElement('div');
                 formBox.className = 'review-form-box';
-                formBox.innerHTML = reviewFormHtml();
+                formBox.innerHTML = reviewFormHtml(items);
                 box.appendChild(formBox);
 
                 formBox.querySelectorAll('.star-rating').forEach(initStarRating);
-                formBox.querySelector('.review-form').addEventListener('submit', function (e) {
+                formBox.querySelector('.review-form').addEventListener('submit', async function (e) {
                     e.preventDefault();
-                    if (!formBox.querySelector('input[name="rating"]').value) {
+
+                    const rating = formBox.querySelector('input[name="rating"]').value;
+                    if (!rating) {
                         showToast('Please choose a star rating first.');
                         return;
                     }
-                    formBox.innerHTML = '<p class="review-done">\u2713 Review submitted. Thank you for your feedback.</p>';
-                    showToast('Review submitted');
+
+                    const comment = formBox.querySelector('textarea').value.trim();
+                    const item = items[Number(formBox.querySelector('.review-product').value)];
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+
+                    try {
+                        const productId = item.productId || await resolveProductId(item.name);
+
+                        const res = await fetch('/api/reviews', {
+                            method: 'POST',
+                            headers: authHeaders(),
+                            body: JSON.stringify({ product_id: productId, rating: Number(rating), comment: comment })
+                        });
+
+                        if (res.status === 401) { sessionExpired(); return; }
+
+                        const json = await res.json().catch(() => ({}));
+                        if (!res.ok) throw new Error(errorText(json, 'Could not submit the review.'));
+
+                        reviewedIds.add(Number(productId));
+                        formBox.innerHTML = '<p class="review-done">\u2713 Review submitted. Thank you for your feedback.</p>';
+                        showToast('Review submitted');
+                        setTimeout(loadOrders, 1500);
+                    } catch (err) {
+                        submitBtn.disabled = false;
+                        if (err.message !== 'AUTH') showToast(err.message);
+                    }
                 });
             }
 
@@ -854,6 +1101,58 @@
             render(0);
         }
 
+        // ---------- Notifications (GET /api/notices, POST /api/notices/read) ----------
+        function setUnreadBadges(count) {
+            ['side-unread', 'tab-unread'].forEach(id => {
+                const badge = document.getElementById(id);
+                badge.textContent = count;
+                badge.classList.toggle('show', count > 0);
+            });
+        }
+
+        function formatDateTime(iso) {
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+        }
+
+        function noticeHtml(notice) {
+            return '<div class="notice-item' + (notice.read ? '' : ' notice-new') + '">' +
+                '<p>' + esc(notice.message) + '</p>' +
+                '<span>' + esc(formatDateTime(notice.created_at)) + '</span>' +
+            '</div>';
+        }
+
+        // markRead: true when the tab is opened, so new items are still highlighted once
+        async function loadNotices(markRead) {
+            const list = document.getElementById('notices-list');
+            try {
+                const res = await fetch('/api/notices', { headers: authHeaders() });
+                if (res.status === 401) { sessionExpired(); return; }
+                if (res.status === 403) {
+                    list.innerHTML = '<p class="orders-status">Notifications are only available for customer accounts.</p>';
+                    return;
+                }
+
+                const json = await res.json();
+                const notices = json.data || [];
+                const unread = Number(json.unread || 0);
+                setUnreadBadges(markRead ? 0 : unread);
+
+                if (!notices.length) {
+                    list.innerHTML = '<p class="orders-status">No notifications yet. You will see delivery updates for your orders here.</p>';
+                    return;
+                }
+                list.innerHTML = notices.map(noticeHtml).join('');
+
+                if (markRead && unread > 0) {
+                    fetch('/api/notices/read', { method: 'POST', headers: authHeaders() }).catch(() => {});
+                }
+            } catch (err) {
+                list.innerHTML = '<p class="orders-status">Could not load your notifications. Please try again.</p>';
+            }
+        }
+
         // ---------- Log out: revoke the token on the server, clear the session, keep the cart ----------
         document.getElementById('logout-link').addEventListener('click', function () {
             const token = localStorage.getItem('auth_token');
@@ -871,7 +1170,9 @@
         });
 
         // ---------- First load ----------
+        loadProfile();
         loadOrders();
+        loadNotices(false);
     </script>
 </body>
 </html>
