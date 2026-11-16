@@ -55,7 +55,6 @@ Choose your own password. Do not publish real passwords.
 |---|---|---|
 | POST | /api/register | Public |
 | POST | /api/login | Public (users and admins) |
-| POST | /api/admin/login | Public (admins only) |
 | POST | /api/logout | Signed-in (revokes the current token) |
 | GET | /api/user | Signed-in |
 | GET | /api/products | Signed-in (user or admin) |
