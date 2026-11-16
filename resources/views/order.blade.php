@@ -569,7 +569,7 @@
 
             required.forEach(input => input.addEventListener('input', () => input.classList.remove('invalid')));
 
-            form.addEventListener('submit', function (e) {
+            form.addEventListener('submit', async function (e) {
                 e.preventDefault();
 
                 const missing = required.filter(input => !input.value.trim());
@@ -579,38 +579,92 @@
                     return;
                 }
 
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const originalText = placeBtn.textContent;
                 placeBtn.disabled = true;
                 placeBtn.textContent = 'Placing order...';
 
-                const orderId = '#STF-' + String(Date.now()).slice(-5) + String(Math.floor(Math.random() * 90) + 10);
-                const order = {
-                    id: orderId,
-                    placed_at: new Date().toISOString(),
-                    payment: document.querySelector('input[name="payment"]:checked').value,
-                    status: 'Processing delivery',
-                    total: subtotal,
-                    items: items,
-                    shipping: {
-                        name: required[0].value.trim(),
-                        phone: required[1].value.trim(),
-                        address: required[2].value.trim(),
-                        city: required[3].value.trim(),
-                        zip: required[4].value.trim()
-                    }
+                const headers = {
+                    'Authorization': 'Bearer ' + token,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
                 };
 
-                // Keep a copy of the order, then take the purchased items out of the bag
-                const orders = readJSON('stefashop_orders', []);
-                orders.unshift(order);
-                localStorage.setItem('stefashop_orders', JSON.stringify(orders));
+                try {
+                    // The bag stores names, not product ids, so look each id up first
+                    const apiItems = [];
+                    for (const item of items) {
+                        let productId = item.id;
+                        if (!productId) {
+                            const res = await fetch('/api/products?search=' + encodeURIComponent(item.name), { headers });
+                            if (res.status === 401) throw new Error('AUTH');
+                            const json = await res.json();
+                            const match = (json.data || []).find(p => p.name === item.name);
+                            if (!match) throw new Error('Product not found: ' + item.name);
+                            productId = match.id;
+                        }
+                        apiItems.push({ product_id: productId, quantity: item.quantity });
+                    }
 
-                const boughtNames = items.map(item => item.name);
-                const remaining = readJSON('stefashop_cart', []).filter(item => !boughtNames.includes(item.name));
-                localStorage.setItem('stefashop_cart', JSON.stringify(remaining));
-                localStorage.removeItem('stefashop_checkout_items');
+                    const response = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({ items: apiItems })
+                    });
 
-                document.getElementById('popup-order-id').textContent = 'Order ' + orderId;
-                document.getElementById('success-popup').classList.add('show');
+                    if (response.status === 401) throw new Error('AUTH');
+                    if (response.status === 403) throw new Error('Only customer accounts can place orders.');
+
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.message || 'Could not place the order.');
+
+                    const apiOrder = result.data || result;
+                    const orderId = '#STF-' + String(apiOrder.id).padStart(5, '0');
+
+                    const order = {
+                        id: orderId,
+                        api_id: apiOrder.id,
+                        placed_at: new Date().toISOString(),
+                        payment: document.querySelector('input[name="payment"]:checked').value,
+                        status: 'Processing delivery',
+                        total: subtotal,
+                        items: items,
+                        shipping: {
+                            name: required[0].value.trim(),
+                            phone: required[1].value.trim(),
+                            address: required[2].value.trim(),
+                            city: required[3].value.trim(),
+                            zip: required[4].value.trim()
+                        }
+                    };
+
+                    // Keep a local copy of the shipping details, then take the purchased items out of the bag
+                    const orders = readJSON('stefashop_orders', []);
+                    orders.unshift(order);
+                    localStorage.setItem('stefashop_orders', JSON.stringify(orders));
+
+                    const boughtNames = items.map(item => item.name);
+                    const remaining = readJSON('stefashop_cart', []).filter(item => !boughtNames.includes(item.name));
+                    localStorage.setItem('stefashop_cart', JSON.stringify(remaining));
+                    localStorage.removeItem('stefashop_checkout_items');
+
+                    document.getElementById('popup-order-id').textContent = 'Order ' + orderId;
+                    document.getElementById('success-popup').classList.add('show');
+                } catch (err) {
+                    placeBtn.disabled = false;
+                    placeBtn.textContent = originalText;
+                    if (err.message === 'AUTH') {
+                        alert('Your session has expired. Please log in again.');
+                        window.location.href = '/login';
+                    } else {
+                        alert(err.message);
+                    }
+                }
             });
         }
     </script>

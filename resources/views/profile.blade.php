@@ -305,6 +305,7 @@
         }
         .save-btn:hover { transform: translateY(-1px); }
         .save-btn:active { transform: scale(0.97); transition-duration: 0.12s; }
+        .save-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .save-btn.green-btn { background: var(--mango); color: var(--ink); }
         .save-btn.green-btn:hover { background: var(--mango-deep); }
         .save-btn.secondary-btn { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
@@ -350,20 +351,23 @@
             display: inline-block;
         }
         .status-badge.complete { background: var(--success-soft); color: var(--success); }
+        .status-badge.cancelled { background: var(--danger-soft); color: var(--danger); }
 
         .order-body { display: flex; justify-content: space-between; align-items: center; font-size: 14px; flex-wrap: wrap; gap: 12px; }
-        .order-body p.item-name { margin: 0; font-weight: 600; font-size: 15px; }
+        .order-body p.item-name { margin: 0 0 4px; font-weight: 600; font-size: 15px; }
         .order-body p.item-sub { margin: 4px 0 0; color: var(--ink-soft); font-size: 13px; }
         .order-body p.item-sub.fulfilled { color: var(--success); font-weight: 600; }
+        .order-body p.item-sub.cancelled-note { color: var(--danger); font-weight: 600; }
         .action-flex { display: flex; gap: 12px; align-items: center; }
         .price-tag { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 18px; letter-spacing: -0.02em; }
 
         .empty-orders { color: var(--ink-soft); font-size: 14px; text-align: center; padding: 28px 0 8px; display: none; }
+        .orders-status { color: var(--ink-soft); font-size: 14px; text-align: center; padding: 28px 0 8px; }
 
         /* Review form */
-        #review-form-box { display: none; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
-        #review-form-box.open { display: block; animation: panelIn 0.4s var(--ease-out) both; }
-        #review-form-box h4 { font-size: 15px; font-weight: 700; margin: 0 0 16px 0; }
+        .review-form-box { display: none; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
+        .review-form-box.open { display: block; animation: panelIn 0.4s var(--ease-out) both; }
+        .review-form-box h4 { font-size: 15px; font-weight: 700; margin: 0 0 16px 0; }
         .star-rating { display: flex; gap: 4px; }
         .star-rating .star { font-size: 28px; line-height: 1; cursor: pointer; color: var(--line); transition: color 0.1s, transform 0.2s var(--ease-spring); user-select: none; }
         .star-rating .star:hover { transform: scale(1.12); }
@@ -493,75 +497,13 @@
                 </div>
             </div>
 
-            <!-- TAB 2: Orders -->
+            <!-- TAB 2: Orders (loaded from the API) -->
             <div id="orders-section" class="tab-panel">
                 <div class="details-panel">
                     <h2>Order history</h2>
 
-                    <div class="order-item-box" data-order="#STF-82941">
-                        <div class="order-header">
-                            <div>
-                                <strong>#STF-82941</strong>
-                                <span class="date">Placed on August 20, 2026</span>
-                            </div>
-                            <span class="status-badge">Processing delivery</span>
-                        </div>
-                        <div class="order-body">
-                            <div>
-                                <p class="item-name">Volt Retro Sneakers (1x)</p>
-                                <p class="item-sub">Free standard shipping</p>
-                            </div>
-                            <div class="action-flex">
-                                <span class="price-tag">$120.00</span>
-                                <button type="button" class="save-btn danger-btn" onclick="cancelOrder(this)">Cancel order</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="order-item-box" data-order="#STF-71042">
-                        <div class="order-header">
-                            <div>
-                                <strong>#STF-71042</strong>
-                                <span class="date">Placed on July 12, 2026</span>
-                            </div>
-                            <span class="status-badge complete">Delivered</span>
-                        </div>
-
-                        <div class="order-body">
-                            <div>
-                                <p class="item-name">Wireless Sound Headphones (1x)</p>
-                                <p class="item-sub fulfilled">✓ Delivered and paid</p>
-                            </div>
-                            <div class="action-flex">
-                                <span class="price-tag">$89.00</span>
-                                <button type="button" class="save-btn secondary-btn" id="open-review-btn">Leave a review</button>
-                            </div>
-                        </div>
-
-                        <div id="review-form-box">
-                            <h4>Write your product review</h4>
-                            <form id="review-form">
-                                <div style="display: grid; gap: 20px; margin-bottom: 20px;">
-                                    <div class="form-group">
-                                        <label>Star rating</label>
-                                        <div class="star-rating" data-rating-for="review-rating-value">
-                                            <span class="star" data-value="1">★</span>
-                                            <span class="star" data-value="2">★</span>
-                                            <span class="star" data-value="3">★</span>
-                                            <span class="star" data-value="4">★</span>
-                                            <span class="star" data-value="5">★</span>
-                                        </div>
-                                        <div class="star-rating-label">Select a rating</div>
-                                        <input type="hidden" id="review-rating-value" name="rating">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="review-text">Your feedback</label>
-                                        <textarea id="review-text" rows="3" placeholder="Share your experience using this item..." required style="resize: none;"></textarea>
-                                    </div>
-                                </div>
-                                <button type="submit" class="save-btn green-btn">Submit review</button>
-                            </form>
-                        </div>
+                    <div id="orders-list">
+                        <p class="orders-status">Loading your orders...</p>
                     </div>
 
                     <p class="empty-orders" id="empty-orders">You have no orders yet. Browse the shop to place your first one.</p>
@@ -601,6 +543,12 @@
         function readJSON(key, fallback) {
             try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch (e) { return fallback; }
         }
+        function esc(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        function money(n) { return '$' + Number(n || 0).toFixed(2); }
 
         let toastTimer;
         function showToast(message) {
@@ -609,6 +557,23 @@
             toast.classList.add('show');
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+        }
+
+        function clearSession() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+            localStorage.removeItem('user_authenticated');
+        }
+        function sessionExpired() {
+            clearSession();
+            window.location.href = '/login';
+        }
+        function authHeaders() {
+            return {
+                'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            };
         }
 
         // ---------- Tabs ----------
@@ -621,6 +586,8 @@
             document.getElementById('tab-bar').dataset.index = TAB_ORDER.indexOf(sectionId);
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === sectionId));
             document.querySelectorAll('.sidebar-link[data-tab]').forEach(l => l.classList.toggle('active', l.dataset.tab === sectionId));
+
+            if (sectionId === 'orders-section') loadOrders();
         }
 
         document.querySelectorAll('.tab-btn, .sidebar-link[data-tab]').forEach(el => {
@@ -686,30 +653,187 @@
             badge.classList.toggle('has-items', total > 0);
         })();
 
-        // ---------- Orders ----------
-        function cancelOrder(btn) {
-            const box = btn.closest('.order-item-box');
-            const orderId = box.dataset.order;
-            box.classList.add('removing');
-            setTimeout(() => {
-                box.remove();
-                showToast('Cancellation requested for order ' + orderId);
-                if (!document.querySelector('.order-item-box')) {
-                    document.getElementById('empty-orders').style.display = 'block';
-                }
-            }, 300);
+        // ---------- Orders (from GET /api/orders) ----------
+        const STATUS_META = {
+            pending:    { label: 'Pending',             cls: '' },
+            processing: { label: 'Processing delivery', cls: '' },
+            completed:  { label: 'Delivered',           cls: 'complete' },
+            cancelled:  { label: 'Cancelled',           cls: 'cancelled' }
+        };
+
+        function formatDate(iso) {
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         }
 
-        // ---------- Review ----------
-        document.getElementById('open-review-btn').addEventListener('click', function () {
-            document.getElementById('review-form-box').classList.add('open');
-            this.style.display = 'none';
-        });
+        function itemName(item) {
+            const p = item.product;
+            return (p && (p.name || (p.data && p.data.name))) || item.product_name || item.name || 'Item';
+        }
+
+        function orderCardHtml(order) {
+            const status = String(order.status || 'pending').toLowerCase();
+            const meta = STATUS_META[status] || { label: status, cls: '' };
+            const displayId = '#STF-' + String(order.id).padStart(5, '0');
+            const items = Array.isArray(order.items) ? order.items : [];
+
+            const itemLines = items.length
+                ? items.map(it => '<p class="item-name">' + esc(itemName(it)) + ' (' + Number(it.quantity || 1) + 'x)</p>').join('')
+                : '<p class="item-name">Order items</p>';
+
+            let subLine = '<p class="item-sub">Free standard shipping</p>';
+            let action = '<button type="button" class="save-btn danger-btn" onclick="cancelOrder(this)">Cancel order</button>';
+
+            if (status === 'completed') {
+                subLine = '<p class="item-sub fulfilled">\u2713 Delivered and paid</p>';
+                action = '<button type="button" class="save-btn secondary-btn" onclick="openReview(this)">Leave a review</button>';
+            } else if (status === 'cancelled') {
+                subLine = '<p class="item-sub cancelled-note">This order was cancelled</p>';
+                action = '';
+            }
+
+            return '' +
+                '<div class="order-item-box" data-id="' + esc(order.id) + '" data-order="' + esc(displayId) + '">' +
+                    '<div class="order-header">' +
+                        '<div>' +
+                            '<strong>' + esc(displayId) + '</strong>' +
+                            '<span class="date">Placed on ' + esc(formatDate(order.created_at)) + '</span>' +
+                        '</div>' +
+                        '<span class="status-badge ' + meta.cls + '">' + esc(meta.label) + '</span>' +
+                    '</div>' +
+                    '<div class="order-body">' +
+                        '<div>' + itemLines + subLine + '</div>' +
+                        '<div class="action-flex">' +
+                            '<span class="price-tag">' + money(order.total) + '</span>' +
+                            action +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+        }
+
+        async function loadOrders() {
+            const list = document.getElementById('orders-list');
+            const empty = document.getElementById('empty-orders');
+            empty.style.display = 'none';
+
+            if (!localStorage.getItem('auth_token')) {
+                sessionExpired();
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/orders', { headers: authHeaders() });
+
+                if (res.status === 401) { sessionExpired(); return; }
+                if (res.status === 403) {
+                    list.innerHTML = '<p class="orders-status">Order history is only available for customer accounts.</p>';
+                    return;
+                }
+
+                const json = await res.json();
+                const orders = Array.isArray(json) ? json : (json.data || []);
+
+                if (!orders.length) {
+                    list.innerHTML = '';
+                    empty.style.display = 'block';
+                    return;
+                }
+                list.innerHTML = orders.map(orderCardHtml).join('');
+            } catch (err) {
+                list.innerHTML = '<p class="orders-status">Could not load your orders. Please try again.</p>';
+            }
+        }
+
+        // Cancel through the API (PUT /api/orders/{id}), then reload the list
+        async function cancelOrder(btn) {
+            const box = btn.closest('.order-item-box');
+            const id = box.dataset.id;
+            const label = box.dataset.order;
+
+            if (!confirm('Cancel order ' + label + '?')) return;
+
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/orders/' + id, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ status: 'cancelled' })
+                });
+
+                if (res.status === 401) { sessionExpired(); return; }
+
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(json.message || 'Could not cancel the order.');
+
+                showToast('Order ' + label + ' cancelled');
+                loadOrders();
+            } catch (err) {
+                btn.disabled = false;
+                showToast(err.message);
+            }
+        }
+
+        // ---------- Review (the form is created on demand inside the completed order) ----------
+        let reviewCount = 0;
+
+        function reviewFormHtml() {
+            return '' +
+                '<h4>Write your product review</h4>' +
+                '<form class="review-form">' +
+                    '<div style="display: grid; gap: 20px; margin-bottom: 20px;">' +
+                        '<div class="form-group">' +
+                            '<label>Star rating</label>' +
+                            '<div class="star-rating">' +
+                                '<span class="star" data-value="1">\u2605</span>' +
+                                '<span class="star" data-value="2">\u2605</span>' +
+                                '<span class="star" data-value="3">\u2605</span>' +
+                                '<span class="star" data-value="4">\u2605</span>' +
+                                '<span class="star" data-value="5">\u2605</span>' +
+                            '</div>' +
+                            '<div class="star-rating-label">Select a rating</div>' +
+                            '<input type="hidden" name="rating">' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label for="review-text-' + reviewCount + '">Your feedback</label>' +
+                            '<textarea id="review-text-' + reviewCount + '" rows="3" placeholder="Share your experience using this item..." required style="resize: none;"></textarea>' +
+                        '</div>' +
+                    '</div>' +
+                    '<button type="submit" class="save-btn green-btn">Submit review</button>' +
+                '</form>';
+        }
+
+        function openReview(btn) {
+            const box = btn.closest('.order-item-box');
+            let formBox = box.querySelector('.review-form-box');
+
+            if (!formBox) {
+                reviewCount++;
+                formBox = document.createElement('div');
+                formBox.className = 'review-form-box';
+                formBox.innerHTML = reviewFormHtml();
+                box.appendChild(formBox);
+
+                formBox.querySelectorAll('.star-rating').forEach(initStarRating);
+                formBox.querySelector('.review-form').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    if (!formBox.querySelector('input[name="rating"]').value) {
+                        showToast('Please choose a star rating first.');
+                        return;
+                    }
+                    formBox.innerHTML = '<p class="review-done">\u2713 Review submitted. Thank you for your feedback.</p>';
+                    showToast('Review submitted');
+                });
+            }
+
+            formBox.classList.add('open');
+            btn.style.display = 'none';
+        }
 
         function initStarRating(container) {
             const stars = container.querySelectorAll('.star');
             const labelEl = container.parentElement.querySelector('.star-rating-label');
-            const hiddenInput = document.getElementById(container.getAttribute('data-rating-for'));
+            const hiddenInput = container.parentElement.querySelector('input[type="hidden"]');
             const labels = { 1: 'Bad', 2: 'Poor', 3: 'Average', 4: 'Good', 5: 'Excellent' };
             let selected = 0;
 
@@ -729,24 +853,25 @@
             container.addEventListener('mouseleave', () => render(selected));
             render(0);
         }
-        document.querySelectorAll('.star-rating').forEach(initStarRating);
 
-        document.getElementById('review-form').addEventListener('submit', function (e) {
-            e.preventDefault();
-            if (!document.getElementById('review-rating-value').value) {
-                showToast('Please choose a star rating first.');
-                return;
-            }
-            document.getElementById('review-form-box').innerHTML = '<p class="review-done">\u2713 Review submitted. Thank you for your feedback.</p>';
-            showToast('Review submitted');
-        });
-
-        // ---------- Log out: clear the whole session, keep the cart ----------
+        // ---------- Log out: revoke the token on the server, clear the session, keep the cart ----------
         document.getElementById('logout-link').addEventListener('click', function () {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('auth_user');
-            localStorage.removeItem('user_authenticated');
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json'
+                    },
+                    keepalive: true
+                });
+            }
+            clearSession();
         });
+
+        // ---------- First load ----------
+        loadOrders();
     </script>
 </body>
 </html>

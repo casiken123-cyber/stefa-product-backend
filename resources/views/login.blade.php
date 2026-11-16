@@ -379,7 +379,7 @@
         </div>
     </div>
 
-    <!-- Authentication Script (API logic unchanged) -->
+    <!-- Authentication Script -->
     <script>
         const REDIRECT_DELAY = 1500;
 
@@ -464,8 +464,16 @@
 
                 if (response.ok) {
                     saveSession(data);
-                    showSuccessPopup(successTitle, successText);
-                    setTimeout(() => { window.location.href = '/shop'; }, REDIRECT_DELAY);
+
+                    // Admins go to the control terminal, customers go to the shop
+                    const isAdmin = data.user && data.user.role === 'admin';
+                    const destination = isAdmin ? '/admin' : '/shop';
+
+                    showSuccessPopup(
+                        successTitle,
+                        isAdmin ? 'Welcome back! Redirecting you to the admin dashboard...' : successText
+                    );
+                    setTimeout(() => { window.location.href = destination; }, REDIRECT_DELAY);
                     return;
                 }
 

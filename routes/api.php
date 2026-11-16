@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\AdminOrderController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderItemController;
@@ -37,5 +38,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::apiResource('admins', AdminController::class);
         Route::apiResource('order-items', OrderItemController::class);
+
+        // Admin dashboard numbers and order management
+        Route::get('/admin/stats', [AdminOrderController::class, 'stats']);
+        Route::get('/admin/orders', [AdminOrderController::class, 'index']);
+        Route::put('/admin/orders/{order}', [AdminOrderController::class, 'update']);
     });
 });
