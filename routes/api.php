@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Route;
 // Public endpoints: guests may only register and log in
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/admin/login', [AuthController::class, 'adminLogin']);
 
 // Private endpoints (require a valid Sanctum token, otherwise 401)
 Route::middleware('auth:sanctum')->group(function () {
