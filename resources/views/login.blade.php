@@ -537,5 +537,8 @@
         });
     </script>
 
+    <!-- Show / hide password eye toggle -->
+    <script src="/js/password-toggle.js"></script>
+
 </body>
 </html>

@@ -177,6 +177,7 @@
             border-radius: 50%;
             border: 2px solid var(--mango);
             display: block;
+            object-fit: cover;
             background: var(--teal-soft);
         }
 
@@ -740,9 +741,36 @@
             if (slot) {
                 slot.innerHTML = `
                     <a href="/profile" class="nav-avatar-link" title="Go to My Profile">
-                        <img src="${DEFAULT_AVATAR}" class="nav-avatar" alt="Your profile">
+                        <img id="nav-avatar" class="nav-avatar" alt="Your profile">
                     </a>
                 `;
+
+                const navAvatar = document.getElementById('nav-avatar');
+                function setNavAvatar(url) {
+                    navAvatar.onerror = function () { this.onerror = null; this.src = DEFAULT_AVATAR; };
+                    navAvatar.src = url || DEFAULT_AVATAR;
+                }
+
+                // Show the cached photo instantly, then confirm it with the server
+                let cachedProfile = null;
+                try { cachedProfile = JSON.parse(localStorage.getItem('stefashop_profile')); } catch (e) {}
+                setNavAvatar(cachedProfile && cachedProfile.avatar_url);
+
+                fetch('/api/profile', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('auth_token'), 'Accept': 'application/json' }
+                })
+                    .then(r => (r.ok ? r.json() : null))
+                    .then(j => {
+                        if (!j || !j.data) return;
+                        const url = j.data.avatar_url || '';
+                        setNavAvatar(url);
+                        // Keep the cache in step, but only if the profile page already created it
+                        if (cachedProfile) {
+                            cachedProfile.avatar_url = url;
+                            localStorage.setItem('stefashop_profile', JSON.stringify(cachedProfile));
+                        }
+                    })
+                    .catch(() => {});
 
                 // A badge on the avatar when the customer has unread delivery updates
                 fetch('/api/notices', {
@@ -788,14 +816,15 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
         }
 
-        // Adds the item, or raises its quantity if it is already in the bag
-        function addProductToCart(name, price, imageUrl, category) {
+        // Adds the item, or raises its quantity if it is already in the bag.
+        // The product id is saved too, because checkout sends it to POST /api/orders.
+        function addProductToCart(id, name, price, imageUrl, category) {
             const cartItems = readCart();
-            const existing = cartItems.find(item => item.name === name);
+            const existing = cartItems.find(item => String(item.id) === String(id));
             if (existing) {
                 existing.quantity = (existing.quantity || 1) + 1;
             } else {
-                cartItems.push({ name: name, price: parseFloat(price), image: imageUrl, category: category, quantity: 1 });
+                cartItems.push({ id: Number(id), name: name, price: parseFloat(price), image: imageUrl, category: category, quantity: 1 });
             }
             localStorage.setItem('stefashop_cart', JSON.stringify(cartItems));
             updateCartCount(true);
@@ -806,7 +835,7 @@
         // apostrophes or quotes can no longer break the page.
         function addFromCard(btn) {
             const d = btn.closest('.card').dataset;
-            addProductToCart(d.name, d.price, d.image, d.category);
+            addProductToCart(d.id, d.name, d.price, d.image, d.category);
             flashAdded(btn);
         }
 
@@ -820,16 +849,16 @@
         }
 
         // Buy Now sends only this item to checkout (same key the cart page uses)
-        function buyNowProduct(name, price, imageUrl, category) {
-            addProductToCart(name, price, imageUrl, category);
-            const item = { name: name, price: parseFloat(price), image: imageUrl, category: category, quantity: 1, selected: true };
+        function buyNowProduct(id, name, price, imageUrl, category) {
+            addProductToCart(id, name, price, imageUrl, category);
+            const item = { id: Number(id), name: name, price: parseFloat(price), image: imageUrl, category: category, quantity: 1, selected: true };
             localStorage.setItem('stefashop_checkout_items', JSON.stringify([item]));
             window.location.href = '/checkout';
         }
 
         function buyFromCard(btn) {
             const d = btn.closest('.card').dataset;
-            buyNowProduct(d.name, d.price, d.image, d.category);
+            buyNowProduct(d.id, d.name, d.price, d.image, d.category);
         }
 
         // ---------- Search ----------
@@ -975,6 +1004,7 @@
         }
 
         function openProductModal(cardEl) {
+            const id = cardEl.dataset.id;
             const name = cardEl.dataset.name;
             const price = cardEl.dataset.price;
             const image = cardEl.dataset.image;
@@ -990,10 +1020,10 @@
 
             const modalCartBtn = document.getElementById('modal-cart-btn');
             modalCartBtn.onclick = function () {
-                addProductToCart(name, price, image, category);
+                addProductToCart(id, name, price, image, category);
                 flashAdded(modalCartBtn);
             };
-            document.getElementById('modal-buy-btn').onclick = function () { buyNowProduct(name, price, image, category); };
+            document.getElementById('modal-buy-btn').onclick = function () { buyNowProduct(id, name, price, image, category); };
 
             // Sold-out products cannot be added or bought
             const soldOut = Number(cardEl.dataset.stock) <= 0;

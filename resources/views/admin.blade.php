@@ -109,7 +109,7 @@
         header a { text-decoration: none; color: var(--danger); font-size: 13px; font-weight: 600; }
         header a:hover { color: #A83232; }
 
-        .workspace-view-panel { padding: 40px; display: none; }
+        .workspace-view-panel { padding: 32px 24px; display: none; }
         .workspace-view-panel.active { display: block; }
 
         h1 { font-size: 22px; font-weight: 700; margin: 0 0 6px 0; letter-spacing: -0.01em; }
@@ -121,12 +121,12 @@
         .stat-card p { margin: 0; color: var(--ink-soft); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
         .stat-card h3 { margin: 10px 0 0 0; font-size: 26px; font-weight: 700; color: var(--ink); font-family: 'IBM Plex Mono', monospace; }
 
-        /* Data Sheets Master Table Layouts */
-        .table-card { background: var(--panel); border-radius: var(--radius-lg); border: 1px solid var(--line); overflow: hidden; }
+        /* Data Sheets Master Table Layouts (scrolls sideways when the table is wider than the panel) */
+        .table-card { background: var(--panel); border-radius: var(--radius-lg); border: 1px solid var(--line); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
         th {
             background: var(--cloud);
-            padding: 13px 24px;
+            padding: 13px 14px;
             font-weight: 600;
             color: var(--ink-soft);
             font-size: 11px;
@@ -134,7 +134,7 @@
             letter-spacing: 0.04em;
             border-bottom: 1px solid var(--line);
         }
-        td { padding: 16px 24px; border-bottom: 1px solid var(--cloud); color: var(--ink); vertical-align: middle; }
+        td { padding: 14px 14px; border-bottom: 1px solid var(--cloud); color: var(--ink); vertical-align: middle; }
         tr:last-child td { border-bottom: none; }
         td strong { font-weight: 600; }
         td.table-note { text-align: center; color: var(--ink-soft); padding: 32px 24px; }
@@ -199,6 +199,11 @@
             cursor: pointer;
         }
         .order-items-cell { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+        .ship-cell { font-size: 13px; color: var(--ink-soft); line-height: 1.5; min-width: 170px; }
+        .order-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+        .order-actions .action-btn { margin-right: 0; white-space: nowrap; }
+        .ship-cell strong { color: var(--ink); }
+        .ship-cell .ship-pay { display: inline-block; margin-top: 4px; }
         .money { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
         .stars { color: #E0A400; letter-spacing: 2px; white-space: nowrap; font-size: 15px; }
         .comment-cell { max-width: 320px; font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
@@ -382,11 +387,11 @@
         <!-- PANEL SECTION 6: ORDERS (live from the API) -->
         <section id="tab-orders" class="workspace-view-panel">
             <h1>Customer Orders</h1>
-            <p class="sub-heading">Review every order and update its fulfillment status.</p>
+            <p class="sub-heading">Review every order, see where it must be delivered, and update its fulfillment status. Cancelled orders can be deleted.</p>
             <div class="table-card">
                 <table>
-                    <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Placed</th><th>Status</th><th>Delivery Update</th></tr></thead>
-                    <tbody id="orders-body"><tr><td colspan="7" class="table-note">Loading orders...</td></tr></tbody>
+                    <thead><tr><th>Order</th><th>Customer</th><th>Delivery Details</th><th>Items</th><th>Total</th><th>Placed</th><th>Status</th><th>Delivery Update</th></tr></thead>
+                    <tbody id="orders-body"><tr><td colspan="8" class="table-note">Loading orders...</td></tr></tbody>
                 </table>
             </div>
         </section>
@@ -1156,26 +1161,55 @@
             saveBtn.textContent = 'Save product';
         });
 
-        // ---------- Orders (GET /api/admin/orders, PUT /api/admin/orders/{id}) ----------
+        // ---------- Orders (GET /api/admin/orders, PUT and DELETE /api/admin/orders/{id}) ----------
         const ORDER_STATUSES = ['pending', 'processing', 'completed', 'cancelled'];
+        // Orders only move forward; delivered and cancelled orders are final
+        const NEXT_STATUS = {
+            pending: ['processing', 'completed', 'cancelled'],
+            processing: ['completed', 'cancelled'],
+            completed: [],
+            cancelled: []
+        };
+
+        // Where the order must be delivered. Orders placed before shipping details were saved show a dash.
+        function shippingCellHtml(s) {
+            if (!s || (!s.name && !s.address)) {
+                return '<span class="order-items-cell">-</span>';
+            }
+            const place = [s.address, s.city, s.zip].filter(Boolean).map(esc).join(', ');
+            return '<strong>' + esc(s.name || '-') + '</strong>' +
+                (s.phone ? '<br>' + esc(s.phone) : '') +
+                (place ? '<br>' + place : '') +
+                (s.payment_method ? '<br><span class="badge ship-pay">' + esc(s.payment_method) + '</span>' : '');
+        }
 
         function orderRowHtml(o) {
             const items = (o.items || []).map(it => esc(it.name || 'Item') + ' (' + Number(it.quantity || 1) + 'x)').join('<br>');
             const customer = o.customer
                 ? '<strong>' + esc(o.customer.name) + '</strong><br><span class="order-items-cell">' + esc(o.customer.email) + '</span>'
                 : '<span class="order-items-cell">Unknown</span>';
-            const options = ORDER_STATUSES.map(s =>
-                '<option value="' + s + '"' + (s === o.status ? ' selected' : '') + '>' + s.charAt(0).toUpperCase() + s.slice(1) + '</option>'
-            ).join('');
+            const allowed = NEXT_STATUS[o.status] || [];
+            const locked = allowed.length === 0;
+            const options = ORDER_STATUSES.map(s => {
+                const enabled = s === o.status || allowed.includes(s);
+                return '<option value="' + s + '"' + (s === o.status ? ' selected' : '') + (enabled ? '' : ' disabled') + '>' +
+                    s.charAt(0).toUpperCase() + s.slice(1) + '</option>';
+            }).join('');
 
             return '<tr>' +
                 '<td class="money">#STF-' + pad(o.id, 5) + '</td>' +
                 '<td>' + customer + '</td>' +
+                '<td class="ship-cell">' + shippingCellHtml(o.shipping) + '</td>' +
                 '<td class="order-items-cell">' + (items || '-') + '</td>' +
                 '<td class="money">' + money(o.total) + '</td>' +
                 '<td>' + esc(formatDate(o.created_at)) + '</td>' +
-                '<td><select class="status-select" onchange="changeOrderStatus(' + Number(o.id) + ', this)">' + options + '</select></td>' +
-                '<td><button class="action-btn" onclick="notifyCustomer(' + Number(o.id) + ')">Send update</button></td>' +
+                '<td><select class="status-select"' + (locked ? ' disabled title="This order is final and cannot be changed"' : '') + ' onchange="changeOrderStatus(' + Number(o.id) + ', this)">' + options + '</select></td>' +
+                '<td class="order-actions">' +
+                    '<button class="action-btn" onclick="notifyCustomer(' + Number(o.id) + ')">Send update</button>' +
+                    (o.status === 'cancelled'
+                        ? '<button class="action-btn danger" onclick="deleteOrder(' + Number(o.id) + ')">Delete</button>'
+                        : '') +
+                '</td>' +
             '</tr>';
         }
 
@@ -1186,9 +1220,9 @@
                 const orders = json.data || [];
                 body.innerHTML = orders.length
                     ? orders.map(orderRowHtml).join('')
-                    : '<tr><td colspan="7" class="table-note">No orders yet.</td></tr>';
+                    : '<tr><td colspan="8" class="table-note">No orders yet.</td></tr>';
             } catch (err) {
-                if (err.message !== 'AUTH') body.innerHTML = '<tr><td colspan="7" class="table-note">Could not load orders.</td></tr>';
+                if (err.message !== 'AUTH') body.innerHTML = '<tr><td colspan="8" class="table-note">Could not load orders.</td></tr>';
             }
         }
 
@@ -1202,6 +1236,7 @@
                 });
                 showToast('Order #STF-' + pad(id, 5) + ' set to ' + select.value + '. The customer was notified.');
                 loadStats();
+                loadOrders(); // refresh so the Delete button appears on cancelled orders
             } catch (err) {
                 if (err.message !== 'AUTH') {
                     showToast(err.message);
@@ -1226,6 +1261,19 @@
                     body: JSON.stringify({ message: message.trim() })
                 });
                 showToast('Update sent to the customer');
+            } catch (err) {
+                if (err.message !== 'AUTH') showToast(err.message);
+            }
+        }
+
+        // Delete a cancelled order (DELETE /api/admin/orders/{id})
+        async function deleteOrder(id) {
+            if (!confirm('Delete order #STF-' + pad(id, 5) + ' permanently? This cannot be undone.')) return;
+            try {
+                await api('/api/admin/orders/' + id, { method: 'DELETE' });
+                showToast('Order deleted');
+                loadOrders();
+                loadStats();
             } catch (err) {
                 if (err.message !== 'AUTH') showToast(err.message);
             }
@@ -1286,11 +1334,16 @@
                 keepalive: true
             });
             clearSession();
+            ['stefashop_cart', 'stefashop_checkout_items', 'stefashop_profile', 'stefashop_orders']
+                .forEach(key => localStorage.removeItem(key));
         });
 
         // ---------- First load ----------
         loadStats();
     </script>
+
+    <!-- Show / hide password eye toggle -->
+    <script src="/js/password-toggle.js"></script>
 
 </body>
 </html>

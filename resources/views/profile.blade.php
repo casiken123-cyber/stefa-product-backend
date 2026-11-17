@@ -140,7 +140,10 @@
         }
         @media (max-width: 800px) { .profile-card { position: static; } }
 
+        /* Profile picture: shows the photo when there is one, otherwise the first letter of the name */
         .avatar {
+            position: relative;
+            overflow: hidden;
             width: 84px;
             height: 84px;
             border-radius: 50%;
@@ -155,7 +158,54 @@
             border: 3px solid var(--mango);
             box-shadow: 0 0 0 4px var(--mango-tint);
             margin-bottom: 16px;
+            flex-shrink: 0;
         }
+        .avatar img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+        .avatar.has-photo img { display: block; }
+        .avatar.has-photo .avatar-letter { display: none; }
+
+        /* Click or drop an image on the circle to change the photo */
+        .avatar-upload { cursor: pointer; }
+        .avatar-upload > * { pointer-events: none; }   /* keeps drag events from flickering over child elements */
+        .avatar-upload:focus-visible { outline: 3px solid rgba(255, 122, 41, 0.55); outline-offset: 3px; }
+        .avatar-upload.dragover { box-shadow: 0 0 0 4px var(--mango-tint), 0 0 0 7px rgba(255, 122, 41, 0.35); }
+        .avatar-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: rgba(18, 24, 27, 0.55);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            line-height: 1.2;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.25s var(--ease-in-out);
+        }
+        .avatar-overlay svg { width: 22px; height: 22px; }
+        .avatar-letter { transition: opacity 0.25s var(--ease-in-out); }
+        .avatar-upload:hover .avatar-overlay,
+        .avatar-upload:focus-visible .avatar-overlay,
+        .avatar-upload.dragover .avatar-overlay,
+        .avatar-upload.busy .avatar-overlay { opacity: 1; }
+        .avatar-upload:hover .avatar-letter,
+        .avatar-upload:focus-visible .avatar-letter,
+        .avatar-upload.dragover .avatar-letter,
+        .avatar-upload.busy .avatar-letter { opacity: 0; }
+
         .profile-card h3 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 700; letter-spacing: -0.01em; word-break: break-word; }
         .profile-email { margin: 2px 0 0; font-size: 13px; color: var(--ink-faint); word-break: break-all; }
 
@@ -263,6 +313,22 @@
             color: var(--ink);
         }
         h2::before { content: ""; width: 8px; height: 8px; background: var(--mango); border-radius: 2px; display: inline-block; }
+
+        .photo-remove {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s var(--ease-in-out);
+        }
+        .photo-remove:hover { background: var(--danger-soft); }
+        .profile-card .photo-remove { margin-top: 6px; font-size: 12px; padding: 6px 10px; }
+        .photo-remove:disabled { opacity: 0.6; cursor: not-allowed; }
 
         /* Forms */
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
@@ -467,9 +533,18 @@
     <main>
         <!-- Sidebar identity card -->
         <aside class="profile-card">
-            <div class="avatar" id="avatar-initial" aria-hidden="true">S</div>
+            <div class="avatar avatar-upload" id="avatar-box" role="button" tabindex="0" aria-label="Change profile photo">
+                <span class="avatar-letter" id="avatar-initial">S</span>
+                <img id="avatar-img" alt="">
+                <div class="avatar-overlay">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    <span class="overlay-text">Add photo</span>
+                </div>
+            </div>
             <h3 id="sidebar-name">Your account</h3>
             <p class="profile-email" id="sidebar-email"></p>
+            <button type="button" class="photo-remove" id="avatar-remove" style="display: none;">Remove photo</button>
+            <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" hidden>
 
             <div class="sidebar-menu">
                 <a href="#" class="sidebar-link active" data-tab="info-section">Account Settings</a>
@@ -496,6 +571,7 @@
             <div id="info-section" class="tab-panel active">
                 <div class="details-panel">
                     <h2>Account information</h2>
+
                     <form id="profile-info-form">
                         <div class="form-row">
                             <div class="form-group">
@@ -622,10 +698,14 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
         }
 
+        // Everything that belongs to the signed-in person, so nothing is left behind for the next visitor
         function clearSession() {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('auth_user');
-            localStorage.removeItem('user_authenticated');
+            ['auth_token', 'auth_user', 'user_authenticated', 'stefashop_profile', 'stefashop_orders']
+                .forEach(key => localStorage.removeItem(key));
+        }
+        // The bag is emptied on an explicit log out
+        function clearCart() {
+            ['stefashop_cart', 'stefashop_checkout_items'].forEach(key => localStorage.removeItem(key));
         }
         function sessionExpired() {
             clearSession();
@@ -689,20 +769,52 @@
         fields.city.value = saved.city || '';
         fields.address.value = saved.address || '';
 
+        // URL of the profile picture ('' = no photo, the first letter of the name is shown instead)
+        let currentAvatar = saved.avatar_url || '';
+
         function cacheProfile() {
             localStorage.setItem('stefashop_profile', JSON.stringify({
                 name: fields.name.value.trim(),
                 phone: fields.phone.value.trim(),
                 city: fields.city.value.trim(),
-                address: fields.address.value.trim()
+                address: fields.address.value.trim(),
+                avatar_url: currentAvatar
             }));
         }
 
+        // Show the photo in the sidebar and in the photo row, or fall back to the initial letter
+        function setAvatar(url) {
+            currentAvatar = url || '';
+            [['avatar-box', 'avatar-img']].forEach(function (pair) {
+                const box = document.getElementById(pair[0]);
+                const img = document.getElementById(pair[1]);
+                if (currentAvatar) {
+                    img.src = currentAvatar;
+                    box.classList.add('has-photo');
+                } else {
+                    img.removeAttribute('src');
+                    box.classList.remove('has-photo');
+                }
+            });
+            document.getElementById('avatar-remove').style.display = currentAvatar ? '' : 'none';
+            document.querySelectorAll('.overlay-text').forEach(function (el) {
+                el.textContent = currentAvatar ? 'Change photo' : 'Add photo';
+            });
+        }
+
+        // If the picture file cannot be loaded, show the initial letter instead
+        ['avatar-img'].forEach(function (id) {
+            document.getElementById(id).addEventListener('error', function () {
+                this.parentElement.classList.remove('has-photo');
+            });
+        });
+
         function refreshIdentity() {
             const name = fields.name.value.trim() || 'Your account';
+            const initial = name.charAt(0).toUpperCase();
             document.getElementById('sidebar-name').textContent = name;
             document.getElementById('sidebar-email').textContent = fields.email.value;
-            document.getElementById('avatar-initial').textContent = name.charAt(0).toUpperCase();
+            document.getElementById('avatar-initial').textContent = initial;
 
             const summary = document.getElementById('ship-summary');
             summary.innerHTML = '';
@@ -713,6 +825,7 @@
             });
         }
         refreshIdentity();
+        setAvatar(currentAvatar);
 
         async function loadProfile() {
             try {
@@ -727,6 +840,7 @@
                 fields.phone.value = p.phone || '';
                 fields.city.value = p.city || '';
                 fields.address.value = p.address || '';
+                setAvatar(p.avatar_url || '');
                 cacheProfile();
                 refreshIdentity();
             } catch (err) {
@@ -767,6 +881,128 @@
             }
 
             button.disabled = false;
+        });
+
+        // ---------- Profile photo (POST and DELETE /api/profile/avatar) ----------
+        const AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+        const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+        const avatarFile = document.getElementById('avatar-file');
+        const avatarRemove = document.getElementById('avatar-remove');
+        const avatarBoxes = ['avatar-box'].map(id => document.getElementById(id));
+        let avatarBusy = false;
+
+        // Upload a photo that was chosen or dropped
+        async function uploadAvatar(file) {
+            if (!file || avatarBusy) return;
+
+            if (AVATAR_TYPES.indexOf(file.type) === -1) {
+                showToast('Choose a JPG, PNG or WEBP image.');
+                return;
+            }
+            if (file.size > AVATAR_MAX_BYTES) {
+                showToast('The photo is too large. The limit is 2 MB.');
+                return;
+            }
+
+            // Show the new photo right away, and go back to the old one if the upload fails
+            const previous = currentAvatar;
+            setAvatar(URL.createObjectURL(file));
+            avatarBusy = true;
+            avatarRemove.disabled = true;
+            avatarBoxes.forEach(function (box) {
+                box.classList.add('busy');
+                box.querySelector('.overlay-text').textContent = 'Uploading...';
+            });
+
+            try {
+                const fd = new FormData();
+                fd.append('avatar', file);
+
+                // No Content-Type header here: the browser sets it for the file upload
+                const res = await fetch('/api/profile/avatar', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
+                        'Accept': 'application/json'
+                    },
+                    body: fd
+                });
+
+                if (res.status === 401) { sessionExpired(); return; }
+
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(errorText(json, 'Could not upload the photo.'));
+
+                setAvatar((json.data && json.data.avatar_url) || '');
+                cacheProfile();
+                showToast('Profile photo updated');
+            } catch (err) {
+                setAvatar(previous);
+                showToast(err.message);
+            }
+
+            avatarBusy = false;
+            avatarRemove.disabled = false;
+            avatarBoxes.forEach(box => box.classList.remove('busy'));
+        }
+
+        // Pick a file: click (or Enter / Space) on either avatar circle
+        avatarFile.addEventListener('change', function () {
+            const file = avatarFile.files[0];
+            avatarFile.value = '';   // lets the same file be chosen again later
+            uploadAvatar(file);
+        });
+
+        avatarBoxes.forEach(function (box) {
+            function openPicker() { if (!avatarBusy) avatarFile.click(); }
+
+            box.addEventListener('click', openPicker);
+            box.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openPicker();
+                }
+            });
+
+            // Drag an image file over the circle, then drop it
+            ['dragenter', 'dragover'].forEach(function (type) {
+                box.addEventListener(type, function (e) {
+                    e.preventDefault();
+                    box.classList.add('dragover');
+                });
+            });
+            ['dragleave', 'dragend'].forEach(function (type) {
+                box.addEventListener(type, function () { box.classList.remove('dragover'); });
+            });
+            box.addEventListener('drop', function (e) {
+                e.preventDefault();
+                box.classList.remove('dragover');
+                const files = e.dataTransfer && e.dataTransfer.files;
+                if (files && files.length) uploadAvatar(files[0]);
+            });
+        });
+
+        avatarRemove.addEventListener('click', async function () {
+            if (!confirm('Remove your profile photo?')) return;
+
+            avatarRemove.disabled = true;
+
+            try {
+                const res = await fetch('/api/profile/avatar', { method: 'DELETE', headers: authHeaders() });
+
+                if (res.status === 401) { sessionExpired(); return; }
+
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(errorText(json, 'Could not remove the photo.'));
+
+                setAvatar('');
+                cacheProfile();
+                showToast('Profile photo removed');
+            } catch (err) {
+                showToast(err.message);
+            }
+
+            avatarRemove.disabled = false;
         });
 
         // ---------- Change password (PUT /api/profile/password) ----------
@@ -875,7 +1111,7 @@
                 subLine = '<p class="item-sub fulfilled">\u2713 Delivered and paid</p>';
                 action = items.some(needsReview)
                     ? '<button type="button" class="save-btn secondary-btn" onclick="openReview(this)">Leave a review</button>'
-                    : '<span class="reviewed-note">\u2713 Reviewed</span>';
+                    : '<span class="reviewed-note">\u2713 Product already reviewed</span>';
             } else if (status === 'cancelled') {
                 subLine = '<p class="item-sub cancelled-note">This order was cancelled</p>';
                 action = '';
@@ -1167,6 +1403,7 @@
                 });
             }
             clearSession();
+            clearCart();
         });
 
         // ---------- First load ----------
@@ -1174,5 +1411,8 @@
         loadOrders();
         loadNotices(false);
     </script>
+
+    <!-- Show / hide password eye toggle -->
+    <script src="/js/password-toggle.js"></script>
 </body>
 </html>

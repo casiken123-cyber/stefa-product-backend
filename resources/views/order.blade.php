@@ -611,10 +611,19 @@
                         apiItems.push({ product_id: productId, quantity: item.quantity });
                     }
 
+                    // Send the shipping details and payment method together with the items
                     const response = await fetch('/api/orders', {
                         method: 'POST',
                         headers: headers,
-                        body: JSON.stringify({ items: apiItems })
+                        body: JSON.stringify({
+                            items: apiItems,
+                            shipping_name: required[0].value.trim(),
+                            shipping_phone: required[1].value.trim(),
+                            shipping_address: required[2].value.trim(),
+                            shipping_city: required[3].value.trim(),
+                            shipping_zip: required[4].value.trim(),
+                            payment_method: document.querySelector('input[name="payment"]:checked').value
+                        })
                     });
 
                     if (response.status === 401) throw new Error('AUTH');
