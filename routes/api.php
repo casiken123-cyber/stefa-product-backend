@@ -38,6 +38,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/profile', [ProfileController::class, 'show']);
         Route::put('/profile', [ProfileController::class, 'update']);
         Route::put('/profile/password', [ProfileController::class, 'password']);
+        Route::post('/profile/avatar', [ProfileController::class, 'avatar']);
+        Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar']);
 
         Route::get('/reviews/mine', [ReviewController::class, 'mine']);
         Route::post('/reviews', [ReviewController::class, 'store']);
@@ -60,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/stats', [AdminOrderController::class, 'stats']);
         Route::get('/admin/orders', [AdminOrderController::class, 'index']);
         Route::put('/admin/orders/{order}', [AdminOrderController::class, 'update']);
+        Route::delete('/admin/orders/{order}', [AdminOrderController::class, 'destroy']);
         Route::post('/admin/orders/{order}/notify', [AdminOrderController::class, 'notify']);
 
         // User management and review moderation

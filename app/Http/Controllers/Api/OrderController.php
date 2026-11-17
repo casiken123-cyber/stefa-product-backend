@@ -18,6 +18,12 @@ class OrderController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'shipping_name' => 'required|string|max:255',
+            'shipping_phone' => 'required|string|max:30',
+            'shipping_address' => 'required|string|max:255',
+            'shipping_city' => 'required|string|max:255',
+            'shipping_zip' => 'required|string|max:20',
+            'payment_method' => 'required|string|in:Cash on Delivery',
         ]);
 
         // The same product may appear twice, so add up its quantity first
@@ -26,12 +32,22 @@ class OrderController extends Controller
             $wanted[$item['product_id']] = ($wanted[$item['product_id']] ?? 0) + $item['quantity'];
         }
 
+        // Always lock products in the same order (by id), so two orders that
+        // contain the same products can never wait on each other forever
+        ksort($wanted);
+
         // If any product is short on stock, nothing is saved
-        $order = DB::transaction(function () use ($wanted, $request) {
+        $order = DB::transaction(function () use ($wanted, $request, $validated) {
             $order = Order::create([
                 'user_id' => $request->user()->id,
                 'status' => 'pending',
                 'total' => 0,
+                'shipping_name' => $validated['shipping_name'],
+                'shipping_phone' => $validated['shipping_phone'],
+                'shipping_address' => $validated['shipping_address'],
+                'shipping_city' => $validated['shipping_city'],
+                'shipping_zip' => $validated['shipping_zip'],
+                'payment_method' => $validated['payment_method'],
             ]);
 
             $total = 0;
@@ -77,16 +93,20 @@ class OrderController extends Controller
             'status' => 'required|string|in:cancelled',
         ]);
 
-        if (! in_array($order->status, ['pending', 'processing'], true)) {
-            return response()->json(['message' => 'This order can no longer be cancelled.'], 422);
-        }
-
         DB::transaction(function () use ($order, $validated) {
-            OrderStock::onStatusChange($order, $order->status, $validated['status']);
-            $order->update($validated);
+            // Lock the order row and check its status again inside the lock,
+            // so a double click cannot return the same items to stock twice
+            $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            if (! in_array($locked->status, ['pending', 'processing'], true)) {
+                abort(422, 'This order can no longer be cancelled.');
+            }
+
+            OrderStock::onStatusChange($locked, $locked->status, $validated['status']);
+            $locked->update($validated);
         });
 
-        return new OrderResource($order->load('items.product'));
+        return new OrderResource($order->fresh()->load('items.product'));
     }
 
     public function destroy(Request $request, Order $order)
@@ -94,11 +114,13 @@ class OrderController extends Controller
         abort_if($order->user_id !== $request->user()->id, 403);
 
         DB::transaction(function () use ($order) {
+            $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+
             // An order that was still waiting to be delivered returns its items to stock
-            if (in_array($order->status, ['pending', 'processing'], true)) {
-                OrderStock::giveBack($order);
+            if (in_array($locked->status, ['pending', 'processing'], true)) {
+                OrderStock::giveBack($locked);
             }
-            $order->delete();
+            $locked->delete();
         });
 
         return response()->noContent();
