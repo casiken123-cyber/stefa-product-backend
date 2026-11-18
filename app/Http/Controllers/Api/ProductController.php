@@ -37,6 +37,7 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'category' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            ...$this->strapRules(),
         ]);
 
         $validated['slug'] = $this->uniqueSlug($validated['name']);
@@ -65,6 +66,7 @@ class ProductController extends Controller
             'stock' => 'sometimes|required|integer|min:0',
             'category' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            ...$this->strapRules(),
         ]);
 
         if (isset($validated['name'])) {
@@ -105,6 +107,19 @@ class ProductController extends Controller
         $this->deleteLocalImage($imageUrl);
 
         return response()->json(['message' => 'Product deleted']);
+    }
+
+    // Validation for the watch strap details, shared by store() and update()
+    private function strapRules(): array
+    {
+        return [
+            'lug_width' => 'nullable|integer|min:6|max:40',
+            'leather_type' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:50',
+            'buckle' => 'nullable|string|max:50',
+            'length' => 'nullable|string|max:20',
+            'quick_release' => 'nullable|boolean',
+        ];
     }
 
     private function uniqueSlug(string $name, ?int $ignoreId = null): string
