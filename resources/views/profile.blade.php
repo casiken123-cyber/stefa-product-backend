@@ -429,6 +429,13 @@
         .price-tag { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 18px; letter-spacing: -0.02em; }
         .reviewed-note { font-size: 13px; font-weight: 600; color: var(--success); }
 
+        /* Delivery details shown at the bottom of each order */
+        .delivery-box { margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+        .delivery-box p { margin: 0; }
+        .delivery-box strong { color: var(--ink); }
+        .delivery-title { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 4px; }
+        .delivery-pay { margin-top: 8px; }
+
         .unread-badge {
             display: none;
             min-width: 20px;
@@ -1093,6 +1100,33 @@
             return !item.productId || !reviewedIds.has(Number(item.productId));
         }
 
+        // Delivery details work with both response shapes: order.shipping.{...} or flat shipping_* fields
+        function shippingOf(order) {
+            const s = order.shipping || {};
+            return {
+                name: s.name || order.shipping_name || '',
+                phone: s.phone || order.shipping_phone || '',
+                address: s.address || order.shipping_address || '',
+                city: s.city || order.shipping_city || '',
+                zip: s.zip || order.shipping_zip || '',
+                payment: s.payment_method || order.payment_method || ''
+            };
+        }
+
+        // Orders placed before shipping details were saved have none, so nothing is shown for them
+        function deliveryHtml(order) {
+            const s = shippingOf(order);
+            if (!s.name && !s.address) return '';
+
+            const place = [s.address, s.city, s.zip].filter(Boolean).map(esc).join(', ');
+            return '<div class="delivery-box">' +
+                '<span class="delivery-title">Deliver to</span>' +
+                '<p><strong>' + esc(s.name || '-') + '</strong>' + (s.phone ? ' \u00B7 ' + esc(s.phone) : '') + '</p>' +
+                (place ? '<p>' + place + '</p>' : '') +
+                (s.payment ? '<span class="status-badge delivery-pay">' + esc(s.payment) + '</span>' : '') +
+            '</div>';
+        }
+
         function orderCardHtml(order) {
             const status = String(order.status || 'pending').toLowerCase();
             const meta = STATUS_META[status] || { label: status, cls: '' };
@@ -1133,6 +1167,7 @@
                             action +
                         '</div>' +
                     '</div>' +
+                    deliveryHtml(order) +
                 '</div>';
         }
 
