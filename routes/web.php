@@ -32,5 +32,13 @@ Route::view('/register', 'register');
 Route::view('/cart', 'cart');
 Route::view('/profile', 'profile');
 Route::view('/checkout', 'order');
-// Administration Management Module Gateway Route
-Route::view('/admin', 'admin');
+
+// Administration Management Module Gateway Route.
+// The page is only a shell (all data comes from the role-protected API), but it is
+// never cached and never indexed, so the Back button after logout shows nothing.
+Route::get('/admin', function () {
+    return response()->view('admin')->withHeaders([
+        'Cache-Control' => 'no-store, no-cache, must-revalidate',
+        'X-Robots-Tag' => 'noindex, nofollow',
+    ]);
+});

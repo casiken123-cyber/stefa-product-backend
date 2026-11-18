@@ -29,6 +29,7 @@
         }
 
         * { box-sizing: border-box; }
+        body.locked { visibility: hidden; }
 
         body {
             font-family: 'Inter', system-ui, sans-serif;
@@ -274,7 +275,7 @@
         .toast.show { opacity: 1; transform: translate(-50%, 0); }
     </style>
 </head>
-<body>
+<body class="locked">
 
     <!--  Administrative Navigation Sidebar Container -->
     <aside>
@@ -658,8 +659,15 @@
                 document.getElementById('rep-orders').textContent = s.orders;
                 document.getElementById('rep-avg').textContent = money(s.orders ? s.sales / s.orders : 0);
                 document.getElementById('rep-products').textContent = s.products;
+
+                // The API accepted this account as an admin, so the page can be shown
+                document.body.classList.remove('locked');
             } catch (err) {
-                if (err.message !== 'AUTH') showToast(err.message);
+                if (err.message !== 'AUTH') {
+                    // A network or server error is not an access problem, so show the page and the message
+                    document.body.classList.remove('locked');
+                    showToast(err.message);
+                }
             }
         }
 
