@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -82,10 +83,26 @@ class ProductController extends Controller
         return new ProductResource($product);
     }
 
+    // A product that appears in any order cannot be deleted, so old orders and the
+    // sales history keep their items. Set its stock to 0 to stop selling it instead.
     public function destroy(Product $product)
     {
-        $this->deleteLocalImage($product->image_url);
-        $product->delete();
+        $imageUrl = DB::transaction(function () use ($product) {
+            // Lock the product row, so an order being placed at this moment
+            // cannot slip in between the check and the delete
+            $locked = Product::whereKey($product->id)->lockForUpdate()->firstOrFail();
+
+            if ($locked->orderItems()->exists()) {
+                abort(422, 'This product is part of existing orders and cannot be deleted. Set its stock to 0 to stop selling it.');
+            }
+
+            $locked->delete();
+
+            return $locked->image_url;
+        });
+
+        // Only remove the picture once the product is really gone
+        $this->deleteLocalImage($imageUrl);
 
         return response()->json(['message' => 'Product deleted']);
     }
