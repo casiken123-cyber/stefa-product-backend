@@ -6,19 +6,22 @@
     <title>Stefa - Sign In</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --cream: #FBF9F5;
-            --obsidian: #111111;
-            --muted: #5F5A53;
-            --terracotta: #E07A5F;
-            --terracotta-text: #B5513A; /* darker terracotta so small text stays readable */
-            --glass: rgba(251, 249, 245, 0.74);
-            --glass-edge: rgba(255, 255, 255, 0.65);
-            --field: rgba(255, 255, 255, 0.72);
-            --field-edge: rgba(17, 17, 17, 0.10);
-            --radius-card: 28px;
+            /* Palette: Brown, Pale Gold, Glowing Gold, plus a dark leather tone for the card */
+            --brown: #603E1E;
+            --pale: #F1D9A8;
+            --gold: #FFC34D;
+            --gold-deep: #F0AC1F;
+            --leather: #24160A;
+            --text-soft: #D9C193;     /* labels and secondary text on the dark card */
+            --placeholder: #B39C76;
+            --glass: rgba(36, 22, 10, 0.62);
+            --glass-edge: rgba(241, 217, 168, 0.26);
+            --field: rgba(255, 248, 232, 0.07);
+            --field-edge: rgba(241, 217, 168, 0.28);
+            --radius-card: 26px;
             --radius-field: 12px;
             --ease: cubic-bezier(0.22, 1, 0.36, 1);
         }
@@ -26,14 +29,14 @@
         * { box-sizing: border-box; }
 
         body {
-            background-color: #A9795A;
-            background-image: url('/images/BckStefa.png');
+            background-color: var(--leather);
+            background-image: url('/images/login-bg.png');
             background-size: cover;
-            background-position: center top;
+            background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-            color: var(--obsidian);
+            color: var(--pale);
             margin: 0;
             display: flex;
             align-items: center;
@@ -43,20 +46,20 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ---------- Glass card ---------- */
+        /* ---------- Dark glass card ---------- */
         .gateway-container {
             width: 100%;
             max-width: 432px;
             padding: 48px 44px 40px;
             border-radius: var(--radius-card);
             background: var(--glass);
-            -webkit-backdrop-filter: blur(22px) saturate(1.25);
-            backdrop-filter: blur(22px) saturate(1.25);
+            -webkit-backdrop-filter: blur(18px) saturate(1.2);
+            backdrop-filter: blur(18px) saturate(1.2);
             border: 1px solid var(--glass-edge);
             box-shadow:
-                0 1px 0 rgba(255, 255, 255, 0.7) inset,
-                0 30px 60px -24px rgba(60, 30, 10, 0.35),
-                0 8px 24px -12px rgba(60, 30, 10, 0.18);
+                0 1px 0 rgba(255, 224, 160, 0.18) inset,
+                0 34px 70px -24px rgba(0, 0, 0, 0.6),
+                0 10px 28px -12px rgba(0, 0, 0, 0.4);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -68,21 +71,22 @@
         }
 
         .brand {
-            font-size: 30px;
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 38px;
             font-weight: 700;
-            letter-spacing: 0.14em;
+            letter-spacing: 0.12em;
             text-align: center;
             line-height: 1;
+            color: var(--pale);
         }
-        .brand-accent { color: var(--terracotta); }
+        .brand-accent { color: var(--gold); }
 
         .tagline {
-            color: var(--muted);
+            color: var(--text-soft);
             font-size: 14px;
             font-weight: 500;
-            letter-spacing: 0.01em;
             text-align: center;
-            margin: 12px 0 36px;
+            margin: 12px 0 34px;
         }
 
         /* ---------- Tab switcher with sliding highlight ---------- */
@@ -94,7 +98,8 @@
             padding: 5px;
             margin-bottom: 30px;
             border-radius: 14px;
-            background: rgba(17, 17, 17, 0.06);
+            background: rgba(241, 217, 168, 0.10);
+            border: 1px solid rgba(241, 217, 168, 0.14);
         }
         .tab-indicator {
             position: absolute;
@@ -103,8 +108,8 @@
             left: 5px;
             width: calc(50% - 5px);
             border-radius: 10px;
-            background: #FFFFFF;
-            box-shadow: 0 2px 8px rgba(17, 17, 17, 0.10);
+            background: var(--gold);
+            box-shadow: 0 4px 14px rgba(255, 195, 77, 0.28);
             transition: transform 0.45s var(--ease);
         }
         .toggle-tabs[data-tab="register"] .tab-indicator { transform: translateX(100%); }
@@ -118,14 +123,13 @@
             font-family: inherit;
             font-size: 14px;
             font-weight: 600;
-            letter-spacing: 0.01em;
-            color: var(--muted);
+            color: var(--text-soft);
             cursor: pointer;
             border-radius: 10px;
             transition: color 0.25s ease;
         }
-        .tab-btn.active { color: var(--obsidian); }
-        .tab-btn:hover:not(.active) { color: var(--obsidian); }
+        .tab-btn.active { color: var(--leather); }
+        .tab-btn:hover:not(.active) { color: #fff; }
 
         /* ---------- Forms ---------- */
         .auth-form { display: none; flex-direction: column; width: 100%; }
@@ -135,21 +139,9 @@
             to   { opacity: 1; transform: none; }
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 20px;
-            transition: transform 0.3s var(--ease);
-        }
-        .form-group:focus-within { transform: scale(1.015); }
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
 
-        label {
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            color: var(--muted);
-        }
+        label { font-size: 13px; font-weight: 600; color: var(--text-soft); }
         input {
             width: 100%;
             padding: 14px 16px;
@@ -159,34 +151,40 @@
             font-family: inherit;
             font-size: 14px;
             font-weight: 500;
-            color: var(--obsidian);
+            color: #FFF8E8;
             outline: none;
             transition: border-color 0.2s ease, box-shadow 0.25s ease, background 0.2s ease;
         }
-        input::placeholder { color: #8E877E; font-weight: 400; }
-        input:hover { border-color: rgba(17, 17, 17, 0.22); }
+        input::placeholder { color: var(--placeholder); font-weight: 400; }
+        input:hover { border-color: rgba(241, 217, 168, 0.5); }
         input:focus {
-            border-color: var(--terracotta);
-            background: #FFFFFF;
-            box-shadow: 0 0 0 4px rgba(224, 122, 95, 0.20);
+            border-color: var(--gold);
+            background: rgba(255, 248, 232, 0.11);
+            box-shadow: 0 0 0 4px rgba(255, 195, 77, 0.20);
+        }
+        /* Keep browser autofill from turning the fields white */
+        input:-webkit-autofill {
+            -webkit-text-fill-color: #FFF8E8;
+            -webkit-box-shadow: 0 0 0 100px #3A2511 inset;
+            caret-color: #FFF8E8;
         }
 
         .password-row { display: flex; justify-content: space-between; align-items: center; }
         .accent-link {
-            font-size: 12.5px;
+            font-size: 13px;
             font-weight: 600;
-            color: var(--terracotta-text);
+            color: var(--gold);
             text-decoration: none;
             border-radius: 4px;
             transition: color 0.2s ease;
         }
-        .accent-link:hover { color: var(--obsidian); text-decoration: underline; text-underline-offset: 3px; }
+        .accent-link:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
 
         .form-message {
             display: none;
-            background: rgba(181, 81, 58, 0.10);
-            color: #8F3B27;
-            border: 1px solid rgba(181, 81, 58, 0.28);
+            background: rgba(255, 140, 110, 0.12);
+            color: #FFB9A8;
+            border: 1px solid rgba(255, 140, 110, 0.35);
             border-radius: var(--radius-field);
             padding: 11px 14px;
             font-size: 13px;
@@ -194,7 +192,7 @@
             margin: 0 0 6px;
         }
 
-        /* ---------- Primary button: hover glow + click ripple ---------- */
+        /* ---------- Primary button: gold with hover glow and click ripple ---------- */
         .submit-btn {
             position: relative;
             overflow: hidden;
@@ -203,30 +201,20 @@
             padding: 15px;
             border: none;
             border-radius: var(--radius-field);
-            background: var(--obsidian);
-            color: #FFFFFF;
+            background: var(--gold);
+            color: var(--leather);
             font-family: inherit;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.04em;
+            font-size: 15px;
+            font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 10px 22px -12px rgba(17, 17, 17, 0.55);
-            transition: transform 0.25s var(--ease), box-shadow 0.3s ease;
-        }
-        .submit-btn::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 50% 120%, rgba(224, 122, 95, 0.55), transparent 65%);
-            opacity: 0;
-            transition: opacity 0.35s ease;
-            pointer-events: none;
+            box-shadow: 0 12px 26px -12px rgba(255, 195, 77, 0.55);
+            transition: transform 0.25s var(--ease), box-shadow 0.3s ease, background 0.2s ease;
         }
         .submit-btn:hover {
+            background: #FFCE6B;
             transform: translateY(-2px);
-            box-shadow: 0 16px 28px -12px rgba(224, 122, 95, 0.65), 0 10px 22px -12px rgba(17, 17, 17, 0.5);
+            box-shadow: 0 18px 34px -12px rgba(255, 195, 77, 0.7);
         }
-        .submit-btn:hover::after { opacity: 1; }
         .submit-btn:active { transform: translateY(0) scale(0.985); }
         .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .submit-btn span.btn-label { position: relative; z-index: 1; }
@@ -234,7 +222,7 @@
         .ripple {
             position: absolute;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.35);
+            background: rgba(96, 62, 30, 0.35);
             transform: scale(0);
             animation: ripple 0.65s ease-out forwards;
             pointer-events: none;
@@ -245,15 +233,14 @@
             margin-top: 26px;
             text-align: center;
             font-size: 13px;
-            color: var(--muted);
+            color: var(--text-soft);
         }
-        .guest-row .accent-link { font-size: 13px; }
 
         /* Keyboard focus */
         .tab-btn:focus-visible,
         .submit-btn:focus-visible,
         .accent-link:focus-visible {
-            outline: 3px solid rgba(224, 122, 95, 0.55);
+            outline: 3px solid var(--gold);
             outline-offset: 3px;
         }
 
@@ -261,7 +248,7 @@
         .popup-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(17, 17, 17, 0.35);
+            background: rgba(20, 12, 4, 0.55);
             -webkit-backdrop-filter: blur(6px);
             backdrop-filter: blur(6px);
             display: none;
@@ -277,8 +264,9 @@
             padding: 38px 32px 32px;
             text-align: center;
             border-radius: 24px;
-            background: var(--cream);
-            box-shadow: 0 30px 60px -20px rgba(17, 17, 17, 0.4);
+            background: #2E1D0D;
+            border: 1px solid var(--glass-edge);
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
             animation: popIn 0.4s var(--ease);
         }
         .popup-icon {
@@ -286,16 +274,16 @@
             height: 60px;
             margin: 0 auto 18px;
             border-radius: 50%;
-            background: rgba(224, 122, 95, 0.16);
-            color: var(--terracotta-text);
+            background: var(--gold);
+            color: var(--leather);
             font-size: 28px;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .popup-card h3 { margin: 0 0 8px; font-size: 20px; font-weight: 700; }
-        .popup-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+        .popup-card h3 { margin: 0 0 8px; font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 600; color: var(--pale); }
+        .popup-card p { margin: 0; color: var(--text-soft); font-size: 14px; line-height: 1.5; }
         @keyframes popIn {
             from { opacity: 0; transform: scale(0.92); }
             to   { opacity: 1; transform: scale(1); }
@@ -316,7 +304,7 @@
     <div class="gateway-container">
 
         <div class="brand">S<span class="brand-accent">TEFA</span></div>
-        <p class="tagline">Elevate your style.</p>
+        <p class="tagline">Leather watch straps, made to be worn.</p>
 
         <!-- Tabs with sliding highlight -->
         <div class="toggle-tabs" id="toggle-tabs" data-tab="login" role="tablist">
@@ -365,7 +353,7 @@
         </form>
 
         <div class="guest-row">
-            Just looking? <a href="/shop" class="accent-link">Browse as guest →</a>
+            Just looking? <a href="/shop" class="accent-link">Browse as guest</a>
         </div>
 
     </div>
