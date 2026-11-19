@@ -297,24 +297,60 @@
         .info-lines span { color: var(--ink-soft); font-weight: 600; }
         .info-lines em { font-style: normal; text-align: right; word-break: break-word; }
 
-        .toast {
-            position: fixed;
-            left: 50%;
-            bottom: 28px;
-            transform: translate(-50%, 16px);
-            background: var(--brown);
-            color: var(--pale);
-            padding: 12px 18px;
-            border-radius: var(--radius-md);
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 16px 34px -14px rgba(43, 27, 12, 0.5);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease, transform 0.3s ease;
-            z-index: 200;
+        /* ---------- Toasts (top right) ---------- */
+        .toast-stack { position: fixed; top: 20px; right: 20px; z-index: 400; display: flex; flex-direction: column; gap: 10px; width: min(380px, calc(100vw - 32px)); pointer-events: none; }
+        .toast { pointer-events: auto; display: flex; align-items: flex-start; gap: 12px; padding: 14px 14px 14px 16px; border-radius: 14px; background: var(--brown); color: var(--pale); box-shadow: 0 18px 38px -16px rgba(43, 27, 12, 0.55); font-size: 14px; line-height: 20px; font-weight: 500; animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .toast.error { background: #7A2A22; color: #FBE7E2; }
+        .toast.leaving { animation: toastOut 0.25s ease forwards; }
+        .toast-icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+        .toast.error .toast-icon { background: #FBE7E2; color: #7A2A22; }
+        .toast-text { flex: 1; min-width: 0; word-break: break-word; padding-top: 1px; }
+        .toast-close { flex-shrink: 0; background: none; border: none; color: inherit; opacity: 0.7; cursor: pointer; font-size: 12px; padding: 4px; border-radius: 6px; }
+        .toast-close:hover { opacity: 1; background: rgba(255, 255, 255, 0.12); }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+        @keyframes toastOut { to { opacity: 0; transform: translateX(24px); } }
+
+        /* ---------- Small dialogs, steppers, clear buttons and preset chips ---------- */
+        .modal-card.sm { max-width: 460px; }
+        .modal-sub { margin: -10px 0 18px; font-size: 14px; color: var(--ink-soft); line-height: 20px; }
+        .field-hint { margin: 2px 0 0; font-size: 13px; color: var(--ink-soft); }
+        .field-meta { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--ink-faint); }
+        .field textarea { resize: vertical; min-height: 96px; line-height: 1.5; }
+
+        .stepper { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 10px; background: var(--cloud); overflow: hidden; }
+        .stepper:focus-within { border-color: var(--gold-deep); background: var(--panel); box-shadow: 0 0 0 4px var(--gold-tint); }
+        .stepper button { width: 46px; border: none; background: none; font-size: 20px; color: var(--brown); cursor: pointer; }
+        .stepper button:hover { background: var(--gold-tint); }
+        .field .stepper input { flex: 1; min-width: 0; border: none; border-left: 1px solid var(--line); border-right: 1px solid var(--line); border-radius: 0; background: transparent; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; box-shadow: none; -moz-appearance: textfield; }
+        .field .stepper input:focus { box-shadow: none; background: transparent; }
+        .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button,
+        .input-wrap input[type="number"]::-webkit-outer-spin-button, .input-wrap input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .input-wrap { position: relative; }
+        .input-wrap input { width: 100%; padding-right: 42px; }
+        .input-wrap input[type="number"] { -moz-appearance: textfield; }
+        .clear-x { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border: none; border-radius: 50%; background: var(--line); color: var(--ink-soft); font-size: 11px; cursor: pointer; display: none; align-items: center; justify-content: center; }
+        .clear-x:hover { background: var(--brown); color: var(--pale); }
+        .input-wrap.has-value .clear-x { display: flex; }
+
+        .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+        .chips:empty { display: none; }
+        .chip { height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink-soft); font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+        .chip:hover { border-color: var(--brown); color: var(--ink); }
+        .chip[aria-pressed="true"] { background: var(--brown); border-color: var(--brown); color: var(--pale); }
+        .chips-label { font-size: 12px; font-weight: 600; color: var(--ink-faint); margin: 0 0 6px; }
+
+        .modal-actions .action-btn.ghost { margin-right: auto; background: none; border-color: transparent; color: var(--ink-soft); }
+        .modal-actions .action-btn.ghost:hover { background: var(--cloud); border-color: var(--line); color: var(--brown); }
+        .action-btn.danger-solid { background: var(--danger); color: #fff; border: none; }
+        .action-btn.danger-solid:hover { background: #8C2820; }
+
+        /* Keep browser autofill from turning fields blue */
+        .field input:-webkit-autofill, .field textarea:-webkit-autofill, .field select:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0 100px var(--cloud) inset;
+            -webkit-text-fill-color: var(--ink);
+            caret-color: var(--ink);
         }
-        .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
         /* ---------- Smaller screens ---------- */
         @media (max-width: 1100px) {
@@ -329,7 +365,7 @@
             .field-row { grid-template-columns: 1fr; }
         }
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { transition-duration: 0.01ms !important; }
+            *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
         }
     </style>
 </head>
@@ -485,7 +521,7 @@
         <div class="modal-card">
             <h2 id="product-modal-title">Add product</h2>
             <p class="modal-error" id="product-error" role="alert"></p>
-            <form id="product-form" novalidate>
+            <form id="product-form" novalidate autocomplete="off">
                 <div class="field">
                     <label for="p-name">Product name</label>
                     <input type="text" id="p-name" maxlength="255" required>
@@ -506,51 +542,56 @@
                 </div>
                 <div class="field">
                     <label for="p-category">Category</label>
-                    <input type="text" id="p-category" list="category-options" maxlength="255" placeholder="Pick a category or type a new one">
-                    <datalist id="category-options"></datalist>
+                    <div class="input-wrap">
+                        <input type="text" id="p-category" maxlength="255" autocomplete="off" placeholder="Pick a category below or type a new one">
+                        <button type="button" class="clear-x" data-clear="p-category" aria-label="Clear category">&#10005;</button>
+                    </div>
+                    <div class="chips" data-fill="p-category"></div>
                 </div>
 
-                <!-- Watch strap details -->
+                <!-- Watch strap details: every field is free text, the chips are only shortcuts -->
                 <div class="field-row">
                     <div class="field">
                         <label for="p-lug">Lug width (mm)</label>
-                        <input type="number" id="p-lug" min="6" max="40" step="1" list="lug-options" placeholder="For example: 20">
-                        <datalist id="lug-options">
-                            <option value="16"></option><option value="18"></option><option value="19"></option>
-                            <option value="20"></option><option value="21"></option><option value="22"></option>
-                            <option value="24"></option>
-                        </datalist>
+                        <div class="input-wrap">
+                            <input type="number" id="p-lug" min="6" max="40" step="1" autocomplete="off" placeholder="For example: 20">
+                            <button type="button" class="clear-x" data-clear="p-lug" aria-label="Clear lug width">&#10005;</button>
+                        </div>
+                        <div class="chips" data-fill="p-lug" data-values="16,18,19,20,21,22,24" data-suffix=" mm"></div>
                     </div>
                     <div class="field">
                         <label for="p-length">Length</label>
-                        <select id="p-length">
-                            <option value="">Not set</option>
-                            <option value="Standard">Standard</option>
-                            <option value="Long">Long</option>
-                        </select>
+                        <div class="input-wrap">
+                            <input type="text" id="p-length" maxlength="20" autocomplete="off" placeholder="For example: Standard">
+                            <button type="button" class="clear-x" data-clear="p-length" aria-label="Clear length">&#10005;</button>
+                        </div>
+                        <div class="chips" data-fill="p-length" data-values="Standard,Short,Long,Extra long"></div>
                     </div>
                 </div>
                 <div class="field-row">
                     <div class="field">
                         <label for="p-leather">Leather type</label>
-                        <input type="text" id="p-leather" list="leather-options" maxlength="50" placeholder="For example: Full-grain calfskin">
-                        <datalist id="leather-options">
-                            <option value="Full-grain calfskin"></option>
-                            <option value="Calfskin"></option>
-                            <option value="Suede"></option>
-                            <option value="Saffiano"></option>
-                            <option value="Crocodile-embossed"></option>
-                            <option value="Vegan leather"></option>
-                        </datalist>
+                        <div class="input-wrap">
+                            <input type="text" id="p-leather" maxlength="50" autocomplete="off" placeholder="For example: Full-grain calfskin">
+                            <button type="button" class="clear-x" data-clear="p-leather" aria-label="Clear leather type">&#10005;</button>
+                        </div>
+                        <div class="chips" data-fill="p-leather" data-values="Full-grain calfskin,Calfskin,Suede,Saffiano,Crocodile-embossed,Vegan leather"></div>
                     </div>
                     <div class="field">
                         <label for="p-color">Colour</label>
-                        <input type="text" id="p-color" maxlength="50" placeholder="For example: Cognac brown">
+                        <div class="input-wrap">
+                            <input type="text" id="p-color" maxlength="50" autocomplete="off" placeholder="For example: Cognac brown">
+                            <button type="button" class="clear-x" data-clear="p-color" aria-label="Clear colour">&#10005;</button>
+                        </div>
+                        <div class="chips" data-fill="p-color" data-values="Black,Brown,Tan,Cognac,Navy,Grey"></div>
                     </div>
                 </div>
                 <div class="field">
                     <label for="p-buckle">Buckle</label>
-                    <input type="text" id="p-buckle" maxlength="50" placeholder="For example: Brushed steel pin buckle">
+                    <div class="input-wrap">
+                        <input type="text" id="p-buckle" maxlength="50" autocomplete="off" placeholder="For example: Brushed steel pin buckle">
+                        <button type="button" class="clear-x" data-clear="p-buckle" aria-label="Clear buckle">&#10005;</button>
+                    </div>
                 </div>
                 <label class="check-row" for="p-quick">
                     <input type="checkbox" id="p-quick">
@@ -563,6 +604,7 @@
                     <img class="image-preview" id="p-image-preview" alt="Image preview">
                 </div>
                 <div class="modal-actions">
+                    <button type="button" class="action-btn ghost" id="product-reset" title="Put every field back the way it was when this form opened">Undo changes</button>
                     <button type="button" class="action-btn" onclick="closeModal('product-modal')">Cancel</button>
                     <button type="submit" class="action-btn primary-btn" id="product-save" style="margin: 0;">Save product</button>
                 </div>
@@ -641,7 +683,71 @@
         </div>
     </div>
 
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <!-- Update stock dialog -->
+    <div class="modal-overlay" id="stock-modal" role="dialog" aria-modal="true" aria-labelledby="stock-modal-title">
+        <div class="modal-card sm">
+            <h2 id="stock-modal-title">Update stock</h2>
+            <p class="modal-sub" id="stock-modal-sub"></p>
+            <p class="modal-error" id="stock-error" role="alert"></p>
+            <form id="stock-form" novalidate>
+                <div class="field">
+                    <label for="stock-input">New stock quantity</label>
+                    <div class="stepper">
+                        <button type="button" data-step="-1" aria-label="Decrease stock by one">&minus;</button>
+                        <input type="number" id="stock-input" min="0" step="1" inputmode="numeric" autocomplete="off" required>
+                        <button type="button" data-step="1" aria-label="Increase stock by one">+</button>
+                    </div>
+                    <p class="field-hint" id="stock-hint"></p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="action-btn" onclick="closeModal('stock-modal')">Cancel</button>
+                    <button type="submit" class="action-btn primary-btn" id="stock-save" style="margin: 0;">Save stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delivery update dialog -->
+    <div class="modal-overlay" id="notify-modal" role="dialog" aria-modal="true" aria-labelledby="notify-modal-title">
+        <div class="modal-card sm">
+            <h2 id="notify-modal-title">Send delivery update</h2>
+            <p class="modal-sub" id="notify-modal-sub"></p>
+            <p class="modal-error" id="notify-error" role="alert"></p>
+            <form id="notify-form" novalidate>
+                <div class="field">
+                    <label for="notify-text">Message to the customer</label>
+                    <textarea id="notify-text" rows="4" maxlength="255" placeholder="For example: Your order is out for delivery and should arrive today."></textarea>
+                    <div class="field-meta"><span>The customer sees this in their Notifications tab.</span><span id="notify-count">0 / 255</span></div>
+                </div>
+                <div class="field">
+                    <p class="chips-label">Quick replies</p>
+                    <div class="chips" id="notify-templates">
+                        <button type="button" class="chip" data-text="Your order is being prepared and will ship soon.">Being prepared</button>
+                        <button type="button" class="chip" data-text="Your order is out for delivery and should arrive today. Please have the payment ready.">Out for delivery</button>
+                        <button type="button" class="chip" data-text="Your order has been delivered. Thank you for shopping with STEFA!">Delivered</button>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="action-btn" onclick="closeModal('notify-modal')">Cancel</button>
+                    <button type="submit" class="action-btn primary-btn" id="notify-save" style="margin: 0;">Send update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirmation dialog (replaces the browser's confirm box) -->
+    <div class="modal-overlay" id="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+        <div class="modal-card sm">
+            <h2 id="confirm-title">Are you sure?</h2>
+            <p class="modal-sub" id="confirm-message" style="margin-top: 0;"></p>
+            <div class="modal-actions">
+                <button type="button" class="action-btn" id="confirm-cancel">Cancel</button>
+                <button type="button" class="action-btn primary-btn" id="confirm-ok" style="margin: 0;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
     <script>
         // ---------- Guard: only a logged-in admin may use this page ----------
@@ -685,13 +791,39 @@
             '<path d="M20 44l9-11 7 8 6-7 11 13H20z" fill="#D9C193"/><circle cx="26" cy="24" r="5" fill="#D9C193"/></svg>'
         );
 
-        let toastTimer;
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+        // Toasts appear in the top right corner. type: 'success' (default) or 'error'
+        function showToast(message, type) {
+            const stack = document.getElementById('toast-stack');
+            const isError = type === 'error';
+
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + (isError ? 'error' : 'success');
+            toast.setAttribute('role', isError ? 'alert' : 'status');
+
+            const icon = document.createElement('span');
+            icon.className = 'toast-icon';
+            icon.textContent = isError ? '!' : '\u2713';
+
+            const text = document.createElement('span');
+            text.className = 'toast-text';
+            text.textContent = message;
+
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'toast-close';
+            close.setAttribute('aria-label', 'Dismiss');
+            close.textContent = '\u2715';
+
+            function dismiss() {
+                toast.classList.add('leaving');
+                setTimeout(() => toast.remove(), 250);
+            }
+            close.addEventListener('click', dismiss);
+
+            toast.append(icon, text, close);
+            stack.appendChild(toast);
+            while (stack.children.length > 4) stack.firstElementChild.remove();
+            setTimeout(dismiss, isError ? 6500 : 4200);
         }
 
         // One place for every API call: adds the token, handles 401/403 and error messages
@@ -719,8 +851,13 @@
         const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
         // ---------- Modals ----------
+        // Some dialogs need to know when they were closed (for example the confirm dialog)
+        const modalHooks = {};
         function openModal(id) { document.getElementById(id).classList.add('show'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+            if (modalHooks[id]) modalHooks[id]();
+        }
         function showModalError(id, text) {
             const box = document.getElementById(id);
             box.textContent = text;
@@ -729,12 +866,41 @@
 
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', function (e) {
-                if (e.target === overlay) overlay.classList.remove('show');
+                if (e.target === overlay) closeModal(overlay.id);
             });
         });
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') document.querySelectorAll('.modal-overlay').forEach(o => o.classList.remove('show'));
+            if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.show').forEach(o => closeModal(o.id));
         });
+
+        // ---------- Confirmation dialog: await askConfirm({...}) gives true or false ----------
+        let confirmResolver = null;
+        function settleConfirm(value) {
+            if (!confirmResolver) return;
+            const resolve = confirmResolver;
+            confirmResolver = null;
+            resolve(value);
+        }
+        function askConfirm(options) {
+            return new Promise(resolve => {
+                settleConfirm(false);
+                confirmResolver = resolve;
+                document.getElementById('confirm-title').textContent = options.title || 'Are you sure?';
+                document.getElementById('confirm-message').textContent = options.message || '';
+                const ok = document.getElementById('confirm-ok');
+                ok.textContent = options.confirmLabel || 'Confirm';
+                ok.classList.toggle('danger-solid', !!options.danger);
+                ok.classList.toggle('primary-btn', !options.danger);
+                openModal('confirm-modal');
+                ok.focus();
+            });
+        }
+        modalHooks['confirm-modal'] = () => settleConfirm(false);
+        document.getElementById('confirm-ok').addEventListener('click', function () {
+            settleConfirm(true);
+            closeModal('confirm-modal');
+        });
+        document.getElementById('confirm-cancel').addEventListener('click', () => closeModal('confirm-modal'));
 
         // ---------- Tabs ----------
         function switchAdminTab(name, link) {
@@ -772,7 +938,7 @@
                 if (err.message !== 'AUTH') {
                     // A network or server error is not an access problem, so show the page and the message
                     document.body.classList.remove('locked');
-                    showToast(err.message);
+                    showToast(err.message, 'error');
                 }
             }
         }
@@ -857,14 +1023,14 @@
         async function deleteUser(id) {
             const u = usersCache.find(item => Number(item.id) === id);
             if (!u) return;
-            if (!confirm('Delete the account of ' + u.name + '? This cannot be undone.')) return;
+            if (!(await askConfirm({ title: 'Delete this account?', message: 'The account of ' + u.name + ' will be removed. This cannot be undone.', confirmLabel: 'Delete account', danger: true }))) return;
             try {
                 await api('/api/admin/users/' + id, { method: 'DELETE' });
                 showToast('User deleted');
                 loadUsers();
                 loadStats();
             } catch (err) {
-                if (err.message !== 'AUTH') showToast(err.message);
+                if (err.message !== 'AUTH') showToast(err.message, 'error');
             }
         }
 
@@ -968,13 +1134,13 @@
         async function deleteAdmin(id) {
             const a = adminsCache.find(item => Number(item.id) === id);
             if (!a) return;
-            if (!confirm('Delete the admin account of ' + a.name + '? They will be signed out everywhere.')) return;
+            if (!(await askConfirm({ title: 'Delete this admin account?', message: a.name + ' will be removed and signed out everywhere.', confirmLabel: 'Delete admin', danger: true }))) return;
             try {
                 await api('/api/admins/' + id, { method: 'DELETE' });
                 showToast('Admin account deleted');
                 loadAdmins();
             } catch (err) {
-                if (err.message !== 'AUTH') showToast(err.message);
+                if (err.message !== 'AUTH') showToast(err.message, 'error');
             }
         }
 
@@ -982,9 +1148,9 @@
         let categoriesCache = [];
         let editingCategoryId = null;
 
+        // The category shortcuts under the product form's Category field
         function fillCategoryOptions() {
-            document.getElementById('category-options').innerHTML =
-                categoriesCache.map(c => '<option value="' + esc(c.name) + '"></option>').join('');
+            renderChips(document.querySelector('.chips[data-fill="p-category"]'), categoriesCache.map(c => c.name));
         }
 
         function renderCategories() {
@@ -1065,13 +1231,13 @@
         async function deleteCategory(id) {
             const c = categoriesCache.find(item => Number(item.id) === id);
             if (!c) return;
-            if (!confirm('Delete the category "' + c.name + '"?')) return;
+            if (!(await askConfirm({ title: 'Delete this category?', message: 'The category "' + c.name + '" will be removed.', confirmLabel: 'Delete category', danger: true }))) return;
             try {
                 await api('/api/categories/' + id, { method: 'DELETE' });
                 showToast('Category deleted');
                 loadCategories();
             } catch (err) {
-                if (err.message !== 'AUTH') showToast(err.message);
+                if (err.message !== 'AUTH') showToast(err.message, 'error');
             }
         }
 
@@ -1143,7 +1309,7 @@
                     '<td>' + esc(p.category || '-') + '</td>' +
                     '<td class="money">' + esc(p.stock) + '</td>' +
                     '<td>' + stockBadge(Number(p.stock)) + '</td>' +
-                    '<td><button class="action-btn" onclick="setStock(' + Number(p.id) + ')">Update stock</button></td>' +
+                    '<td><button class="action-btn" onclick="openStockModal(' + Number(p.id) + ')">Update stock</button></td>' +
                 '</tr>'
             )).join('');
         }
@@ -1161,42 +1327,91 @@
             }
         }
 
-        // Update only the stock number
-        async function setStock(id) {
+        // ---------- Update stock dialog (PUT /api/products/{id}) ----------
+        let stockEditId = null;
+        const stockInput = document.getElementById('stock-input');
+
+        function stockLabel(n) {
+            if (n <= 0) return 'Out of stock';
+            if (n <= 5) return 'Low stock';
+            return 'In stock';
+        }
+
+        function updateStockHint() {
+            const product = productsCache.find(p => Number(p.id) === stockEditId);
+            const current = product ? Number(product.stock) : 0;
+            const raw = stockInput.value.trim();
+            document.getElementById('stock-hint').textContent = /^\d+$/.test(raw)
+                ? 'Currently ' + current + ' in stock. After saving: ' + stockLabel(Number(raw)) + '.'
+                : 'Currently ' + current + ' in stock.';
+        }
+
+        function openStockModal(id) {
             const product = productsCache.find(p => Number(p.id) === id);
             if (!product) return;
-            const answer = prompt('New stock for "' + product.name + '":', product.stock);
-            if (answer === null) return;
-            const stock = parseInt(answer, 10);
-            if (isNaN(stock) || stock < 0) {
-                showToast('Enter a whole number, 0 or higher.');
+            stockEditId = id;
+            showModalError('stock-error', '');
+            document.getElementById('stock-modal-sub').textContent = product.name;
+            stockInput.value = product.stock;
+            updateStockHint();
+            openModal('stock-modal');
+            stockInput.focus();
+            stockInput.select();
+        }
+
+        stockInput.addEventListener('input', updateStockHint);
+        document.querySelectorAll('#stock-modal [data-step]').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const raw = stockInput.value.trim();
+                const current = /^\d+$/.test(raw) ? Number(raw) : 0;
+                stockInput.value = Math.max(0, current + Number(btn.dataset.step));
+                updateStockHint();
+                stockInput.focus();
+            });
+        });
+
+        document.getElementById('stock-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            showModalError('stock-error', '');
+
+            const raw = stockInput.value.trim();
+            if (!/^\d+$/.test(raw)) {
+                showModalError('stock-error', 'Enter a whole number, 0 or higher.');
+                stockInput.focus();
                 return;
             }
+
+            const stock = parseInt(raw, 10);
+            const product = productsCache.find(p => Number(p.id) === stockEditId);
+            const saveBtn = document.getElementById('stock-save');
+            saveBtn.disabled = true;
             try {
-                await api('/api/products/' + id, {
+                await api('/api/products/' + stockEditId, {
                     method: 'PUT',
                     headers: JSON_HEADERS,
                     body: JSON.stringify({ stock: stock })
                 });
-                showToast('Stock updated');
+                closeModal('stock-modal');
+                showToast('Stock for "' + (product ? product.name : 'product') + '" is now ' + stock + ' (' + stockLabel(stock) + ').');
                 loadProducts();
                 loadStats();
             } catch (err) {
-                if (err.message !== 'AUTH') showToast(err.message);
+                if (err.message !== 'AUTH') showModalError('stock-error', err.message);
             }
-        }
+            saveBtn.disabled = false;
+        });
 
         async function deleteProduct(id) {
             const product = productsCache.find(p => Number(p.id) === id);
             if (!product) return;
-            if (!confirm('Delete "' + product.name + '"? This cannot be undone.')) return;
+            if (!(await askConfirm({ title: 'Delete this product?', message: '"' + product.name + '" will be removed from the store. This cannot be undone.', confirmLabel: 'Delete product', danger: true }))) return;
             try {
                 await api('/api/products/' + id, { method: 'DELETE' });
                 showToast('Product deleted');
                 loadProducts();
                 loadStats();
             } catch (err) {
-                if (err.message !== 'AUTH') showToast(err.message);
+                if (err.message !== 'AUTH') showToast(err.message, 'error');
             }
         }
 
@@ -1206,15 +1421,94 @@
         const imageInput = document.getElementById('p-image');
         const imagePreview = document.getElementById('p-image-preview');
 
+        // ---------- Free-text fields with clear buttons and preset chips ----------
+        // The chips are only shortcuts: the admin can always type anything else.
+        function syncField(input) {
+            const wrap = input.closest('.input-wrap');
+            if (wrap) wrap.classList.toggle('has-value', input.value !== '');
+            const chips = document.querySelector('.chips[data-fill="' + input.id + '"]');
+            if (chips) {
+                const typed = input.value.trim().toLowerCase();
+                chips.querySelectorAll('.chip').forEach(chip => {
+                    chip.setAttribute('aria-pressed', String(typed !== '' && chip.dataset.value.toLowerCase() === typed));
+                });
+            }
+        }
+
+        function setField(id, value) {
+            const input = document.getElementById(id);
+            input.value = value == null ? '' : value;
+            syncField(input);
+        }
+
+        function renderChips(container, values) {
+            if (!container) return;
+            container.innerHTML = '';
+            values.forEach(value => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'chip';
+                chip.dataset.value = value;
+                chip.textContent = value + (container.dataset.suffix || '');
+                chip.setAttribute('aria-pressed', 'false');
+                container.appendChild(chip);
+            });
+            const input = document.getElementById(container.dataset.fill);
+            if (input) syncField(input);
+        }
+
+        document.querySelectorAll('.chips[data-fill][data-values]').forEach(container => {
+            renderChips(container, container.dataset.values.split(','));
+        });
+
+        document.getElementById('product-form').addEventListener('click', function (e) {
+            const clear = e.target.closest('.clear-x');
+            if (clear) {
+                setField(clear.dataset.clear, '');
+                document.getElementById(clear.dataset.clear).focus();
+                return;
+            }
+            const chip = e.target.closest('.chips[data-fill] .chip');
+            if (chip) {
+                const id = chip.closest('.chips').dataset.fill;
+                // Clicking a chip fills the field; clicking the chosen chip again empties it
+                setField(id, chip.getAttribute('aria-pressed') === 'true' ? '' : chip.dataset.value);
+            }
+        });
+        document.getElementById('product-form').addEventListener('input', function (e) {
+            if (e.target.matches('input')) syncField(e.target);
+        });
+
+        // What the form held when it opened: the saved product, or empty for a new one.
+        // The Reset button puts every field back to this.
+        const PRODUCT_FIELDS = ['p-name', 'p-description', 'p-price', 'p-stock', 'p-category', 'p-lug', 'p-length', 'p-leather', 'p-color', 'p-buckle'];
+        let productSnapshot = {};
+        let snapshotImage = '';
+
+        function applyProductSnapshot() {
+            PRODUCT_FIELDS.forEach(id => setField(id, productSnapshot[id]));
+            document.getElementById('p-quick').checked = !!productSnapshot.quick;
+            imageInput.value = '';
+            if (snapshotImage) {
+                imagePreview.src = snapshotImage;
+                imagePreview.style.display = 'block';
+            } else {
+                imagePreview.removeAttribute('src');
+                imagePreview.style.display = 'none';
+            }
+        }
+
         function openProductModal(id) {
             editingId = id;
             productForm.reset();
             showModalError('product-error', '');
-            imagePreview.style.display = 'none';
-            imagePreview.removeAttribute('src');
 
-            // The category list comes from the categories table
+            // The category shortcuts come from the categories table
             loadCategories();
+
+            const snap = { quick: false };
+            PRODUCT_FIELDS.forEach(f => { snap[f] = ''; });
+            snapshotImage = '';
 
             if (id === null) {
                 document.getElementById('product-modal-title').textContent = 'Add product';
@@ -1222,25 +1516,32 @@
                 const p = productsCache.find(item => Number(item.id) === id);
                 if (!p) return;
                 document.getElementById('product-modal-title').textContent = 'Edit product';
-                document.getElementById('p-name').value = p.name || '';
-                document.getElementById('p-description').value = p.description || '';
-                document.getElementById('p-price').value = p.price;
-                document.getElementById('p-stock').value = p.stock;
-                document.getElementById('p-category').value = p.category || '';
-                document.getElementById('p-lug').value = p.lug_width || '';
-                document.getElementById('p-length').value = p.length || '';
-                document.getElementById('p-leather').value = p.leather_type || '';
-                document.getElementById('p-color').value = p.color || '';
-                document.getElementById('p-buckle').value = p.buckle || '';
-                document.getElementById('p-quick').checked = !!p.quick_release;
-                if (p.image_url) {
-                    imagePreview.src = p.image_url;
-                    imagePreview.style.display = 'block';
-                }
+                snap['p-name'] = p.name || '';
+                snap['p-description'] = p.description || '';
+                snap['p-price'] = p.price == null ? '' : String(p.price);
+                snap['p-stock'] = p.stock == null ? '' : String(p.stock);
+                snap['p-category'] = p.category || '';
+                snap['p-lug'] = p.lug_width || '';
+                snap['p-length'] = p.length || '';
+                snap['p-leather'] = p.leather_type || '';
+                snap['p-color'] = p.color || '';
+                snap['p-buckle'] = p.buckle || '';
+                snap.quick = !!p.quick_release;
+                snapshotImage = p.image_url || '';
             }
+
+            productSnapshot = snap;
+            document.getElementById('product-reset').textContent = id === null ? 'Clear form' : 'Undo changes';
+            applyProductSnapshot();
             openModal('product-modal');
             document.getElementById('p-name').focus();
         }
+
+        document.getElementById('product-reset').addEventListener('click', function () {
+            applyProductSnapshot();
+            showModalError('product-error', '');
+            document.getElementById('p-name').focus();
+        });
 
         imageInput.addEventListener('change', function () {
             const file = imageInput.files[0];
@@ -1301,6 +1602,7 @@
         });
 
         // ---------- Orders (GET /api/admin/orders, PUT and DELETE /api/admin/orders/{id}) ----------
+        let ordersCache = [];
         const ORDER_STATUSES = ['pending', 'processing', 'completed', 'cancelled'];
         // Orders only move forward; delivered and cancelled orders are final
         const NEXT_STATUS = {
@@ -1344,7 +1646,7 @@
                 '<td>' + esc(formatDate(o.created_at)) + '</td>' +
                 '<td><select class="status-select"' + (locked ? ' disabled title="This order is final and cannot be changed"' : '') + ' onchange="changeOrderStatus(' + Number(o.id) + ', this)">' + options + '</select></td>' +
                 '<td class="order-actions">' +
-                    '<button class="action-btn" onclick="notifyCustomer(' + Number(o.id) + ')">Send update</button>' +
+                    '<button class="action-btn" onclick="openNotifyModal(' + Number(o.id) + ')">Send update</button>' +
                     (o.status === 'cancelled'
                         ? '<button class="action-btn danger" onclick="deleteOrder(' + Number(o.id) + ')">Delete</button>'
                         : '') +
@@ -1357,6 +1659,7 @@
             try {
                 const json = await api('/api/admin/orders');
                 const orders = json.data || [];
+                ordersCache = orders;
                 body.innerHTML = orders.length
                     ? orders.map(orderRowHtml).join('')
                     : '<tr><td colspan="8" class="table-note">No orders yet.</td></tr>';
@@ -1378,43 +1681,80 @@
                 loadOrders(); // refresh so the Delete button appears on cancelled orders
             } catch (err) {
                 if (err.message !== 'AUTH') {
-                    showToast(err.message);
+                    showToast(err.message, 'error');
                     loadOrders();
                 }
             }
             select.disabled = false;
         }
 
-        // Send the customer a custom delivery update (POST /api/admin/orders/{id}/notify)
-        async function notifyCustomer(id) {
-            const message = prompt('Delivery update for order #STF-' + pad(id, 5) + ' (the customer sees this in Notifications):');
-            if (message === null) return;
-            if (!message.trim()) {
-                showToast('Write a message first.');
+        // ---------- Delivery update dialog (POST /api/admin/orders/{id}/notify) ----------
+        let notifyOrderId = null;
+        const notifyText = document.getElementById('notify-text');
+
+        function updateNotifyCount() {
+            document.getElementById('notify-count').textContent = notifyText.value.length + ' / 255';
+        }
+
+        function openNotifyModal(id) {
+            const order = ordersCache.find(o => Number(o.id) === id);
+            notifyOrderId = id;
+            showModalError('notify-error', '');
+            document.getElementById('notify-modal-sub').textContent =
+                'Order #STF-' + pad(id, 5) + (order && order.customer ? ' \u00B7 ' + order.customer.name : '');
+            notifyText.value = '';
+            updateNotifyCount();
+            openModal('notify-modal');
+            notifyText.focus();
+        }
+
+        notifyText.addEventListener('input', updateNotifyCount);
+        document.querySelectorAll('#notify-templates .chip').forEach(chip => {
+            chip.addEventListener('click', function () {
+                notifyText.value = chip.dataset.text;
+                updateNotifyCount();
+                notifyText.focus();
+            });
+        });
+
+        document.getElementById('notify-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            showModalError('notify-error', '');
+
+            const message = notifyText.value.trim();
+            if (!message) {
+                showModalError('notify-error', 'Write a message for the customer first.');
+                notifyText.focus();
                 return;
             }
+
+            const order = ordersCache.find(o => Number(o.id) === notifyOrderId);
+            const saveBtn = document.getElementById('notify-save');
+            saveBtn.disabled = true;
             try {
-                await api('/api/admin/orders/' + id + '/notify', {
+                await api('/api/admin/orders/' + notifyOrderId + '/notify', {
                     method: 'POST',
                     headers: JSON_HEADERS,
-                    body: JSON.stringify({ message: message.trim() })
+                    body: JSON.stringify({ message: message })
                 });
-                showToast('Update sent to the customer');
+                closeModal('notify-modal');
+                showToast('Delivery update sent' + (order && order.customer ? ' to ' + order.customer.name : '') + '.');
             } catch (err) {
-                if (err.message !== 'AUTH') showToast(err.message);
+                if (err.message !== 'AUTH') showModalError('notify-error', err.message);
             }
-        }
+            saveBtn.disabled = false;
+        });
 
         // Delete a cancelled order (DELETE /api/admin/orders/{id})
         async function deleteOrder(id) {
-            if (!confirm('Delete order #STF-' + pad(id, 5) + ' permanently? This cannot be undone.')) return;
+            if (!(await askConfirm({ title: 'Delete this order?', message: 'Order #STF-' + pad(id, 5) + ' will be deleted permanently. This cannot be undone.', confirmLabel: 'Delete order', danger: true }))) return;
             try {
                 await api('/api/admin/orders/' + id, { method: 'DELETE' });
                 showToast('Order deleted');
                 loadOrders();
                 loadStats();
             } catch (err) {
-                if (err.message !== 'AUTH') showToast(err.message);
+                if (err.message !== 'AUTH') showToast(err.message, 'error');
             }
         }
 
@@ -1455,13 +1795,13 @@
         }
 
         async function deleteReview(id) {
-            if (!confirm('Delete this review? This cannot be undone.')) return;
+            if (!(await askConfirm({ title: 'Delete this review?', message: 'The review will be removed from the product. This cannot be undone.', confirmLabel: 'Delete review', danger: true }))) return;
             try {
                 await api('/api/admin/reviews/' + id, { method: 'DELETE' });
                 showToast('Review deleted');
                 loadReviews();
             } catch (err) {
-                if (err.message !== 'AUTH') showToast(err.message);
+                if (err.message !== 'AUTH') showToast(err.message, 'error');
             }
         }
 
