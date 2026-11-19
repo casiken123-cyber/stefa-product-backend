@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/cart-store.js"></script>
     <style>
         :root {
             /* Palette: Brown, Pale Gold, Glowing Gold, plus a dark leather tone for the card */
@@ -452,6 +453,11 @@
 
                 if (response.ok) {
                     saveSession(data);
+
+                    // Bring the items a guest added into this customer's own cart
+                    if (data.user && data.user.role !== 'admin') {
+                        StefaCart.mergeGuestInto(StefaCart.ownerOf(data.user));
+                    }
 
                     // Admins go to the control terminal, customers go to the shop
                     const isAdmin = data.user && data.user.role === 'admin';

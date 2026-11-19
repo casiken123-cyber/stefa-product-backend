@@ -5,25 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StefaShop - Administrative Master Control Center</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --ink: #12181B;
-            --ink-soft: #4A5459;
-            --cloud: #F5F6F2;
-            --panel: #FFFFFF;
-            --line: #E1E4DE;
-            --mango: #FF7A29;
-            --mango-dark: #E15F0F;
-            --teal: #0E4C47;
-            --teal-soft: #E6EFEE;
-            --danger: #C43D3D;
-            --success: #1E8E5A;
-            --success-soft: #E5F3EA;
-            --info: #2563EB;
-            --info-soft: #DBEAFE;
-            --warn: #EA580C;
-            --warn-soft: #FFEDD5;
+            /* Palette: Brown, Pale Gold, Glowing Gold, plus leather tones */
+            --brown: #603E1E;
+            --pale: #F1D9A8;
+            --gold: #FFC34D;
+            --gold-deep: #F0AC1F;
+            --gold-tint: rgba(255, 195, 77, 0.22);
+            --leather: #2A1A0B;
+            --leather-2: #3A2411;
+
+            --ink: #2B1B0C;
+            --ink-soft: #6B5238;
+            --ink-faint: #7A6648;
+            --canvas: #FBF5E8;
+            --panel: #FFFDF8;
+            --cloud: #F6EAD0;
+            --line: #E6D3AB;
+            --row-line: #F0E3C4;
+
+            --danger: #B3382F;
+            --danger-soft: #FBE7E2;
+            --success: #2F7D4F;
+            --success-soft: #E3F0E5;
+            --info: #603E1E;
+            --info-soft: #F1D9A8;
+            --warn: #8A5200;
+            --warn-soft: #FFE9B8;
+
             --radius-lg: 14px;
             --radius-md: 10px;
         }
@@ -33,7 +44,7 @@
 
         body {
             font-family: 'Inter', system-ui, sans-serif;
-            background: var(--cloud);
+            background: var(--canvas);
             color: var(--ink);
             margin: 0;
             display: flex;
@@ -42,63 +53,80 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        h1, h2, h3, .display { font-family: 'Space Grotesk', sans-serif; }
+        h1, h2, h3, .display { font-family: 'Fraunces', Georgia, serif; }
 
-        /* Left Administrative Navigation Sidebar Component */
+        a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+            outline: 3px solid var(--brown);
+            outline-offset: 2px;
+        }
+        aside a:focus-visible { outline-color: var(--gold); }
+
+        /* ---------- Sidebar: dark leather with a stitched edge ---------- */
         aside {
-            width: 260px;
-            background: var(--teal);
-            color: #B9CFCC;
+            width: 264px;
+            flex-shrink: 0;
+            color: #E5D2A8;
             display: flex;
             flex-direction: column;
-            padding: 24px;
-            border-right: 1px solid rgba(255,255,255,0.06);
+            padding: 26px 24px 26px 22px;
             overflow-y: auto;
+            background:
+                repeating-linear-gradient(to bottom, rgba(241, 217, 168, 0.34) 0 7px, transparent 7px 13px) right 9px top 14px / 2px calc(100% - 28px) no-repeat,
+                linear-gradient(180deg, var(--leather-2), var(--leather));
         }
         .admin-brand {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 19px;
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 26px;
             font-weight: 700;
-            color: white;
-            margin-bottom: 32px;
+            color: var(--pale);
+            margin-bottom: 30px;
             text-decoration: none;
-            letter-spacing: -0.01em;
+            letter-spacing: 0.04em;
+            line-height: 1.1;
         }
-        .admin-brand span { color: var(--mango); }
+        .admin-brand span { color: var(--gold); }
+        .admin-brand small {
+            display: block;
+            margin-top: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0;
+            color: #B39C76;
+        }
         .sidebar-section-title {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 600;
-            color: #6E8B87;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin: 18px 0 8px 10px;
+            color: #B39C76;
+            margin: 22px 0 8px 12px;
         }
         .menu-link {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 10px 14px;
-            color: #CFE0DE;
+            color: #E5D2A8;
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
             border-radius: var(--radius-md);
             margin-bottom: 4px;
-            transition: all 0.15s;
+            transition: background 0.15s, color 0.15s;
         }
-        .menu-link:hover { background: rgba(255,255,255,0.06); color: white; }
+        .menu-link:hover { background: rgba(241, 217, 168, 0.09); color: #fff; }
         .menu-link.active {
-            border-left: 3px solid var(--mango);
-            border-radius: 0 var(--radius-md) var(--radius-md) 0;
-            background: rgba(255, 122, 41, 0.14);
-            color: white;
+            background: rgba(255, 195, 77, 0.16);
+            box-shadow: inset 3px 0 0 var(--gold);
+            color: #fff;
             font-weight: 600;
         }
 
-        /* Right Content Panel Sheets Window Workspace */
-        main { flex: 1; display: flex; flex-direction: column; background: var(--cloud); overflow-y: auto; }
+        /* ---------- Content workspace ---------- */
+        main { flex: 1; display: flex; flex-direction: column; background: var(--canvas); overflow-y: auto; min-width: 0; }
         header {
+            position: sticky;
+            top: 0;
+            z-index: 5;
             background: var(--panel);
             padding: 16px 40px;
             display: flex;
@@ -108,21 +136,25 @@
         }
         header > div { font-weight: 600; color: var(--ink-soft); font-size: 14px; }
         header a { text-decoration: none; color: var(--danger); font-size: 13px; font-weight: 600; }
-        header a:hover { color: #A83232; }
+        header a:hover { color: #8C2820; }
 
-        .workspace-view-panel { padding: 32px 24px; display: none; }
+        .workspace-view-panel { padding: 32px 36px; display: none; }
         .workspace-view-panel.active { display: block; }
 
-        h1 { font-size: 22px; font-weight: 700; margin: 0 0 6px 0; letter-spacing: -0.01em; }
-        .sub-heading { font-size: 14px; color: var(--ink-soft); margin: 0 0 24px 0; }
+        h1 { font-size: 28px; line-height: 36px; font-weight: 600; margin: 0 0 6px 0; letter-spacing: -0.01em; color: var(--brown); }
+        .sub-heading { font-size: 14px; color: var(--ink-soft); margin: 0 0 24px 0; max-width: 70ch; }
 
-        /* Stats Summary Widgets Grid */
+        /* ---------- Stats ---------- */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 32px; }
         .stat-card { background: var(--panel); padding: 22px; border-radius: var(--radius-lg); border: 1px solid var(--line); }
-        .stat-card p { margin: 0; color: var(--ink-soft); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-        .stat-card h3 { margin: 10px 0 0 0; font-size: 26px; font-weight: 700; color: var(--ink); font-family: 'IBM Plex Mono', monospace; }
+        .stat-card p { margin: 0; color: var(--ink-soft); font-size: 13px; font-weight: 500; }
+        .stat-card h3 { margin: 10px 0 0 0; font-size: 26px; font-weight: 600; color: var(--ink); font-family: 'IBM Plex Mono', monospace; }
+        /* The first card (sales) is the one to look at */
+        .stats-grid .stat-card:first-child { background: var(--brown); border-color: var(--brown); }
+        .stats-grid .stat-card:first-child p { color: #E5D2A8; }
+        .stats-grid .stat-card:first-child h3 { color: var(--gold); }
 
-        /* Data Sheets Master Table Layouts (scrolls sideways when the table is wider than the panel) */
+        /* ---------- Tables (scroll sideways when wider than the panel) ---------- */
         .table-card { background: var(--panel); border-radius: var(--radius-lg); border: 1px solid var(--line); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
         th {
@@ -130,62 +162,61 @@
             padding: 13px 14px;
             font-weight: 600;
             color: var(--ink-soft);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
+            font-size: 13px;
             border-bottom: 1px solid var(--line);
+            white-space: nowrap;
         }
-        td { padding: 14px 14px; border-bottom: 1px solid var(--cloud); color: var(--ink); vertical-align: middle; }
+        td { padding: 14px 14px; border-bottom: 1px solid var(--row-line); color: var(--ink); vertical-align: middle; }
+        tbody tr:hover td { background: #FFF8E8; }
         tr:last-child td { border-bottom: none; }
         td strong { font-weight: 600; }
         td.table-note { text-align: center; color: var(--ink-soft); padding: 32px 24px; }
+        tbody tr:hover td.table-note { background: transparent; }
 
-        /* UI Control Action Badges */
+        /* ---------- Badges ---------- */
         .badge {
-            font-family: 'IBM Plex Mono', monospace;
             background: var(--cloud);
             color: var(--ink-soft);
             padding: 4px 10px;
             border-radius: 20px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
             display: inline-block;
         }
         .badge.green { background: var(--success-soft); color: var(--success); }
         .badge.blue { background: var(--info-soft); color: var(--info); }
         .badge.orange { background: var(--warn-soft); color: var(--warn); }
-        .badge.red { background: #FBE9E7; color: var(--danger); }
+        .badge.red { background: var(--danger-soft); color: var(--danger); }
 
+        /* ---------- Buttons ---------- */
         .action-btn {
-            background: none;
+            background: var(--panel);
             border: 1px solid var(--line);
             padding: 6px 12px;
             border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            color: var(--ink);
+            color: var(--brown);
             margin-right: 4px;
             font-family: 'Inter', sans-serif;
-            transition: all 0.15s;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
         }
-        .action-btn:hover { background: var(--cloud); border-color: var(--ink-soft); }
+        .action-btn:hover { background: var(--cloud); border-color: var(--brown); }
         .action-btn.danger { color: var(--danger); }
-        .action-btn.danger:hover { background: #FBE9E7; border-color: var(--danger); }
+        .action-btn.danger:hover { background: var(--danger-soft); border-color: var(--danger); }
         .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .action-btn.primary-btn {
-            background: var(--mango);
-            color: white;
+            background: var(--gold);
+            color: var(--ink);
             border: none;
             padding: 10px 18px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             border-radius: var(--radius-md);
             margin-bottom: 16px;
         }
-        .action-btn.primary-btn:hover { background: var(--mango-dark); }
+        .action-btn.primary-btn:hover { background: var(--gold-deep); }
 
         .thumb { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; border: 1px solid var(--line); background: var(--cloud); display: block; }
         .status-select {
@@ -199,6 +230,7 @@
             color: var(--ink);
             cursor: pointer;
         }
+        .status-select:hover:not(:disabled) { border-color: var(--brown); }
         .order-items-cell { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
         .ship-cell { font-size: 13px; color: var(--ink-soft); line-height: 1.5; min-width: 170px; }
         .order-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
@@ -206,14 +238,14 @@
         .ship-cell strong { color: var(--ink); }
         .ship-cell .ship-pay { display: inline-block; margin-top: 4px; }
         .money { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
-        .stars { color: #E0A400; letter-spacing: 2px; white-space: nowrap; font-size: 15px; }
+        .stars { color: #C98A00; letter-spacing: 2px; white-space: nowrap; font-size: 15px; }
         .comment-cell { max-width: 320px; font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
 
-        /* Modals (product, user, category) */
+        /* ---------- Modals ---------- */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(18, 24, 27, 0.5);
+            background: rgba(43, 27, 12, 0.55);
             display: none;
             align-items: center;
             justify-content: center;
@@ -223,19 +255,20 @@
         .modal-overlay.show { display: flex; }
         .modal-card {
             background: var(--panel);
+            border: 1px solid var(--line);
             border-radius: 18px;
             width: 100%;
-            max-width: 520px;
+            max-width: 540px;
             max-height: 92vh;
             overflow-y: auto;
             padding: 28px;
-            box-shadow: 0 30px 60px -20px rgba(18, 24, 27, 0.4);
+            box-shadow: 0 30px 60px -20px rgba(43, 27, 12, 0.5);
         }
-        .modal-card h2 { margin: 0 0 20px 0; font-size: 20px; }
+        .modal-card h2 { margin: 0 0 20px 0; font-size: 24px; font-weight: 600; color: var(--brown); }
         .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
         .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .field label { font-size: 12px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.04em; }
-        .field input, .field textarea {
+        .field label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+        .field input, .field textarea, .field select {
             padding: 11px 14px;
             border-radius: 10px;
             border: 1px solid var(--line);
@@ -245,8 +278,16 @@
             color: var(--ink);
             outline: none;
         }
-        .field input:focus, .field textarea:focus { border-color: var(--mango); background: var(--panel); box-shadow: 0 0 0 4px rgba(255, 122, 41, 0.14); }
-        .modal-error { display: none; background: #FBE9E7; color: var(--danger); border: 1px solid #F0C4BE; border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 500; margin-bottom: 14px; }
+        .field input:focus, .field textarea:focus, .field select:focus {
+            border-color: var(--gold-deep);
+            background: var(--panel);
+            box-shadow: 0 0 0 4px var(--gold-tint);
+        }
+        .check-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer; }
+        .check-row input { width: 18px; height: 18px; accent-color: var(--brown); cursor: pointer; }
+        .strap-cell { font-size: 13px; color: var(--ink-soft); line-height: 1.5; min-width: 150px; }
+        .strap-cell strong { color: var(--ink); }
+        .modal-error { display: none; background: var(--danger-soft); color: var(--danger); border: 1px solid #F0C4BE; border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 500; margin-bottom: 14px; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
         .modal-actions .action-btn { margin: 0; padding: 10px 18px; font-size: 13px; }
         .image-preview { width: 84px; height: 84px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line); background: var(--cloud); margin-top: 6px; display: none; }
@@ -261,25 +302,42 @@
             left: 50%;
             bottom: 28px;
             transform: translate(-50%, 16px);
-            background: var(--ink);
-            color: #fff;
+            background: var(--brown);
+            color: var(--pale);
             padding: 12px 18px;
             border-radius: var(--radius-md);
             font-size: 14px;
             font-weight: 500;
+            box-shadow: 0 16px 34px -14px rgba(43, 27, 12, 0.5);
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s ease, transform 0.3s ease;
             z-index: 200;
         }
         .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+        /* ---------- Smaller screens ---------- */
+        @media (max-width: 1100px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 820px) {
+            body { flex-direction: column; height: auto; min-height: 100vh; overflow: auto; }
+            aside { width: 100%; padding: 20px; background: linear-gradient(180deg, var(--leather-2), var(--leather)); }
+            main { overflow: visible; }
+            header { padding: 14px 20px; position: static; }
+            .workspace-view-panel { padding: 24px 20px; }
+            .field-row { grid-template-columns: 1fr; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition-duration: 0.01ms !important; }
+        }
     </style>
 </head>
 <body class="locked">
 
     <!--  Administrative Navigation Sidebar Container -->
     <aside>
-        <a href="/admin" class="admin-brand">STEFA<span>SHOP</span> <small style="font-size: 11px; font-weight: 500; display: block; color: #6E8B87; font-family: 'Inter', sans-serif; margin-top: 4px;">Admin Terminal</small></a>
+        <a href="/admin" class="admin-brand">STEFA<span>SHOP</span> <small>Admin Terminal</small></a>
 
         <nav style="display: flex; flex-direction: column; flex: 1;">
             <a href="#" class="menu-link active" onclick="switchAdminTab('dashboard', this)">Admin Dashboard</a>
@@ -367,8 +425,8 @@
             <button class="action-btn primary-btn" onclick="openProductModal(null)">Add Product to Store</button>
             <div class="table-card">
                 <table>
-                    <thead><tr><th>Image</th><th>Product Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions Control</th></tr></thead>
-                    <tbody id="products-body"><tr><td colspan="6" class="table-note">Loading products...</td></tr></tbody>
+                    <thead><tr><th>Image</th><th>Product Name</th><th>Category</th><th>Strap Details</th><th>Price</th><th>Stock</th><th>Actions Control</th></tr></thead>
+                    <tbody id="products-body"><tr><td colspan="7" class="table-note">Loading products...</td></tr></tbody>
                 </table>
             </div>
         </section>
@@ -451,6 +509,54 @@
                     <input type="text" id="p-category" list="category-options" maxlength="255" placeholder="Pick a category or type a new one">
                     <datalist id="category-options"></datalist>
                 </div>
+
+                <!-- Watch strap details -->
+                <div class="field-row">
+                    <div class="field">
+                        <label for="p-lug">Lug width (mm)</label>
+                        <input type="number" id="p-lug" min="6" max="40" step="1" list="lug-options" placeholder="For example: 20">
+                        <datalist id="lug-options">
+                            <option value="16"></option><option value="18"></option><option value="19"></option>
+                            <option value="20"></option><option value="21"></option><option value="22"></option>
+                            <option value="24"></option>
+                        </datalist>
+                    </div>
+                    <div class="field">
+                        <label for="p-length">Length</label>
+                        <select id="p-length">
+                            <option value="">Not set</option>
+                            <option value="Standard">Standard</option>
+                            <option value="Long">Long</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="p-leather">Leather type</label>
+                        <input type="text" id="p-leather" list="leather-options" maxlength="50" placeholder="For example: Full-grain calfskin">
+                        <datalist id="leather-options">
+                            <option value="Full-grain calfskin"></option>
+                            <option value="Calfskin"></option>
+                            <option value="Suede"></option>
+                            <option value="Saffiano"></option>
+                            <option value="Crocodile-embossed"></option>
+                            <option value="Vegan leather"></option>
+                        </datalist>
+                    </div>
+                    <div class="field">
+                        <label for="p-color">Colour</label>
+                        <input type="text" id="p-color" maxlength="50" placeholder="For example: Cognac brown">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="p-buckle">Buckle</label>
+                    <input type="text" id="p-buckle" maxlength="50" placeholder="For example: Brushed steel pin buckle">
+                </div>
+                <label class="check-row" for="p-quick">
+                    <input type="checkbox" id="p-quick">
+                    Quick-release spring bars
+                </label>
+
                 <div class="field">
                     <label for="p-image">Product image (JPG, PNG or WEBP, max 2 MB)</label>
                     <input type="file" id="p-image" accept="image/jpeg,image/png,image/webp">
@@ -575,8 +681,8 @@
         function pad(n, size) { return String(n).padStart(size, '0'); }
 
         const FALLBACK_THUMB = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 68 68"><rect width="68" height="68" fill="#F3F4EF"/>' +
-            '<path d="M20 44l9-11 7 8 6-7 11 13H20z" fill="#CBD3CE"/><circle cx="26" cy="24" r="5" fill="#CBD3CE"/></svg>'
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 68 68"><rect width="68" height="68" fill="#F6EAD0"/>' +
+            '<path d="M20 44l9-11 7 8 6-7 11 13H20z" fill="#D9C193"/><circle cx="26" cy="24" r="5" fill="#D9C193"/></svg>'
         );
 
         let toastTimer;
@@ -985,6 +1091,18 @@
             return all;
         }
 
+        // One short line of strap details for the products table
+        function strapSummary(p) {
+            const parts = [];
+            if (p.lug_width) parts.push('<strong>' + Number(p.lug_width) + ' mm</strong>');
+            if (p.leather_type) parts.push(esc(p.leather_type));
+            if (p.color) parts.push(esc(p.color));
+            if (p.buckle) parts.push(esc(p.buckle));
+            if (p.length) parts.push(esc(p.length) + ' length');
+            if (p.quick_release) parts.push('Quick-release');
+            return parts.length ? parts.join('<br>') : '-';
+        }
+
         function stockBadge(stock) {
             if (stock <= 0) return '<span class="badge red">Out of stock</span>';
             if (stock <= 5) return '<span class="badge orange">Low stock</span>';
@@ -994,7 +1112,7 @@
         function renderProducts() {
             const body = document.getElementById('products-body');
             if (!productsCache.length) {
-                body.innerHTML = '<tr><td colspan="6" class="table-note">No products yet. Click "Add Product to Store" to create one.</td></tr>';
+                body.innerHTML = '<tr><td colspan="7" class="table-note">No products yet. Click "Add Product to Store" to create one.</td></tr>';
                 return;
             }
             body.innerHTML = productsCache.map(p => (
@@ -1002,6 +1120,7 @@
                     '<td><img class="thumb" src="' + esc(p.image_url || FALLBACK_THUMB) + '" alt="" onerror="this.onerror=null; this.src=FALLBACK_THUMB;"></td>' +
                     '<td><strong>' + esc(p.name) + '</strong></td>' +
                     '<td>' + esc(p.category || '-') + '</td>' +
+                    '<td class="strap-cell">' + strapSummary(p) + '</td>' +
                     '<td class="money">' + money(p.price) + '</td>' +
                     '<td>' + esc(p.stock) + '</td>' +
                     '<td>' +
@@ -1036,7 +1155,7 @@
                 renderInventory();
             } catch (err) {
                 if (err.message !== 'AUTH') {
-                    document.getElementById('products-body').innerHTML = '<tr><td colspan="6" class="table-note">Could not load products.</td></tr>';
+                    document.getElementById('products-body').innerHTML = '<tr><td colspan="7" class="table-note">Could not load products.</td></tr>';
                     document.getElementById('inventory-body').innerHTML = '<tr><td colspan="5" class="table-note">Could not load inventory.</td></tr>';
                 }
             }
@@ -1108,6 +1227,12 @@
                 document.getElementById('p-price').value = p.price;
                 document.getElementById('p-stock').value = p.stock;
                 document.getElementById('p-category').value = p.category || '';
+                document.getElementById('p-lug').value = p.lug_width || '';
+                document.getElementById('p-length').value = p.length || '';
+                document.getElementById('p-leather').value = p.leather_type || '';
+                document.getElementById('p-color').value = p.color || '';
+                document.getElementById('p-buckle').value = p.buckle || '';
+                document.getElementById('p-quick').checked = !!p.quick_release;
                 if (p.image_url) {
                     imagePreview.src = p.image_url;
                     imagePreview.style.display = 'block';
@@ -1142,6 +1267,12 @@
             fd.append('price', price);
             fd.append('stock', stock);
             fd.append('category', document.getElementById('p-category').value.trim());
+            fd.append('lug_width', document.getElementById('p-lug').value);
+            fd.append('length', document.getElementById('p-length').value);
+            fd.append('leather_type', document.getElementById('p-leather').value.trim());
+            fd.append('color', document.getElementById('p-color').value.trim());
+            fd.append('buckle', document.getElementById('p-buckle').value.trim());
+            fd.append('quick_release', document.getElementById('p-quick').checked ? '1' : '0');
             if (imageInput.files[0]) fd.append('image', imageInput.files[0]);
 
             let url = '/api/products';
