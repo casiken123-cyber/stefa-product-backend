@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\NoticeController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderItemController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReviewController;
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\Route;
 // At most 10 attempts per minute from one address, to slow down password guessing
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/forgot-password', [PasswordResetController::class, 'forgot'])->middleware('throttle:5,1');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:10,1');
 
 // Private endpoints (require a valid Sanctum token, otherwise 401)
 Route::middleware('auth:sanctum')->group(function () {
@@ -41,8 +44,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/profile/avatar', [ProfileController::class, 'avatar']);
         Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar']);
 
+        // Reviews: write, edit and delete your own
         Route::get('/reviews/mine', [ReviewController::class, 'mine']);
         Route::post('/reviews', [ReviewController::class, 'store']);
+        Route::put('/reviews/{review}', [ReviewController::class, 'update']);
+        Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
 
         Route::get('/notices', [NoticeController::class, 'index']);
         Route::post('/notices/read', [NoticeController::class, 'readAll']);

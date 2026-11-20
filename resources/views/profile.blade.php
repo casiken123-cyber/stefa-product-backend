@@ -15,6 +15,7 @@
             --gold: #FFC34D;
             --gold-deep: #F0AC1F;
             --gold-tint: rgba(255, 195, 77, 0.24);
+            --gold-ring: rgba(255, 195, 77, 0.30);
 
             --canvas: #FBF5E8;
             --surface: #FFFDF8;
@@ -29,17 +30,26 @@
             --success-soft: #E3F0E5;
 
             --radius-card: 16px;
-            --radius-panel: 18px;
+            --radius-panel: 20px;
             --radius-ctl: 12px;
 
             --shadow-1: 0 1px 2px rgba(43, 27, 12, 0.05);
             --shadow-2: 0 8px 20px -8px rgba(43, 27, 12, 0.16);
+            --shadow-panel: 0 18px 40px -22px rgba(43, 27, 12, 0.22), 0 2px 6px -2px rgba(43, 27, 12, 0.06);
             --shadow-3: 0 22px 44px -16px rgba(43, 27, 12, 0.24), 0 6px 14px -6px rgba(43, 27, 12, 0.10);
             --ring: 0 0 0 4px var(--gold-tint);
 
             --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
             --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
             --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+            /* Sidebar grid: every row uses the same left padding, icon column and gap */
+            --menu-row-h: 46px;
+            --menu-pad-x: 16px;
+            --menu-icon: 20px;
+            --menu-gap: 12px;
+            --menu-sub-indent: 30px;
+            --topbar-h: 62px;
         }
 
         * { box-sizing: border-box; }
@@ -48,10 +58,10 @@
         h1, h2, h3, h4 { font-family: 'Fraunces', Georgia, serif; }
 
         a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--brown); outline-offset: 2px; }
-        nav a:focus-visible { outline-color: var(--gold); }
+        .top-nav a:focus-visible { outline-color: var(--gold); }
 
-        /* ===================== Navigation ===================== */
-        nav { background: var(--brown); padding: 14px 48px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+        /* ===================== Top navigation ===================== */
+        .top-nav { background: var(--brown); padding: 14px 48px; min-height: var(--topbar-h); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
         .logo { font-family: 'Fraunces', Georgia, serif; font-size: 27px; font-weight: 700; color: var(--pale); text-decoration: none; letter-spacing: 0.02em; line-height: 1; }
         .logo-accent { color: var(--gold); }
         .nav-links { display: flex; align-items: center; gap: 4px; }
@@ -62,18 +72,19 @@
         .cart-count.has-items { display: inline-flex; }
 
         /* ===================== Layout ===================== */
-        main { max-width: 1100px; margin: 48px auto 72px; padding: 0 32px; display: grid; grid-template-columns: 264px 1fr; gap: 32px; align-items: start; }
+        main { max-width: 1120px; margin: 48px auto 72px; padding: 0 32px; display: grid; grid-template-columns: 288px minmax(0, 1fr); gap: 32px; align-items: start; }
         @media (max-width: 800px) {
-            nav { padding: 12px 20px; }
+            .top-nav { padding: 12px 20px; }
             main { grid-template-columns: 1fr; padding: 0 20px; margin-top: 28px; }
         }
 
-        /* ===================== Sidebar ===================== */
-        .profile-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-panel); box-shadow: var(--shadow-1); padding: 32px 16px 16px; display: flex; flex-direction: column; align-items: center; text-align: center; position: sticky; top: 96px; }
+        /* ===================== Sidebar (user card + navigation) ===================== */
+        .profile-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-panel); box-shadow: var(--shadow-panel); padding: 36px 18px 18px; display: flex; flex-direction: column; align-items: center; text-align: center; position: sticky; top: 96px; }
         @media (max-width: 800px) { .profile-card { position: static; } }
 
-        /* Profile picture: shows the photo when there is one, otherwise the first letter of the name */
-        .avatar { position: relative; overflow: hidden; width: 84px; height: 84px; border-radius: 50%; background: var(--brown); color: var(--pale); font-family: 'Fraunces', Georgia, serif; font-size: 34px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 3px solid var(--gold); box-shadow: 0 0 0 4px var(--gold-tint); margin-bottom: 16px; flex-shrink: 0; }
+        /* Profile picture: shows the photo when there is one, otherwise the first letter of the name.
+           A soft light-gold ring frames it. */
+        .avatar { position: relative; overflow: hidden; width: 96px; height: 96px; border-radius: 50%; background: var(--brown); color: var(--pale); font-family: 'Fraunces', Georgia, serif; font-size: 38px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 3px solid var(--gold); box-shadow: 0 0 0 7px var(--gold-ring), 0 14px 26px -12px rgba(96, 62, 30, 0.55); margin-bottom: 22px; flex-shrink: 0; }
         .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
         .avatar.has-photo img { display: block; }
         .avatar.has-photo .avatar-letter { display: none; }
@@ -81,8 +92,8 @@
         /* Click or drop an image on the circle to change the photo */
         .avatar-upload { cursor: pointer; }
         .avatar-upload > * { pointer-events: none; }   /* keeps drag events from flickering over child elements */
-        .avatar-upload:focus-visible { outline: 3px solid var(--brown); outline-offset: 3px; }
-        .avatar-upload.dragover { box-shadow: 0 0 0 4px var(--gold-tint), 0 0 0 7px rgba(240, 172, 31, 0.45); }
+        .avatar-upload:focus-visible { outline: 3px solid var(--brown); outline-offset: 6px; }
+        .avatar-upload.dragover { box-shadow: 0 0 0 7px var(--gold-ring), 0 0 0 11px rgba(240, 172, 31, 0.45); }
         .avatar-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: rgba(43, 27, 12, 0.62); color: #fff; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; line-height: 1.2; text-align: center; opacity: 0; transition: opacity 0.25s var(--ease-in-out); }
         .avatar-overlay svg { width: 22px; height: 22px; }
         .avatar-letter { transition: opacity 0.25s var(--ease-in-out); }
@@ -95,63 +106,101 @@
         .avatar-upload.dragover .avatar-letter,
         .avatar-upload.busy .avatar-letter { opacity: 0; }
 
-        .profile-card h3 { margin: 0; font-size: 21px; line-height: 28px; font-weight: 600; color: var(--brown); word-break: break-word; }
-        .profile-email { margin: 2px 0 0; font-size: 13px; color: var(--ink-faint); word-break: break-all; }
+        .profile-card h3 { margin: 0; font-size: 23px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em; color: var(--brown); word-break: break-word; }
+        .profile-email { margin: 4px 0 0; font-size: 13px; line-height: 20px; color: var(--ink-faint); word-break: break-all; }
 
-        .sidebar-menu { display: flex; flex-direction: column; gap: 4px; margin-top: 24px; width: 100%; text-align: left; }
-        .sidebar-link { position: relative; text-decoration: none; color: var(--ink-soft); font-size: 15px; font-weight: 500; padding: 10px 14px; min-height: 44px; display: flex; align-items: center; border-radius: var(--radius-ctl); transition: background 0.2s var(--ease-in-out), color 0.2s var(--ease-in-out); }
-        .sidebar-link::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--gold-deep); transform: scaleY(0); transition: transform 0.32s var(--ease-out); }
+        .photo-remove { background: none; border: none; color: var(--danger); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 10px; cursor: pointer; transition: background 0.2s var(--ease-in-out); }
+        .photo-remove:hover { background: var(--danger-soft); }
+        .profile-card .photo-remove { margin-top: 8px; font-size: 12px; padding: 6px 12px; }
+        .photo-remove:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* ---- Sidebar menu: one column, one left edge, identical rows ---- */
+        .sidebar-menu { display: flex; flex-direction: column; align-items: stretch; gap: 4px; width: 100%; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); text-align: left; }
+
+        /* Each row is a 3-column grid: [icon] [label] [optional badge] */
+        .sidebar-link {
+            position: relative;
+            display: grid;
+            grid-template-columns: var(--menu-icon) minmax(0, 1fr) auto;
+            align-items: center;
+            column-gap: var(--menu-gap);
+            width: 100%;
+            height: var(--menu-row-h);
+            padding: 0 var(--menu-pad-x);
+            border-radius: 999px;
+            text-decoration: none;
+            color: var(--ink-soft);
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.2;
+            white-space: nowrap;
+            transition: background 0.2s var(--ease-in-out), color 0.2s var(--ease-in-out), box-shadow 0.2s var(--ease-in-out);
+        }
+        .sidebar-link svg { width: var(--menu-icon); height: var(--menu-icon); justify-self: center; color: var(--ink-faint); transition: color 0.2s var(--ease-in-out); }
+        .sidebar-link .link-label { overflow: hidden; text-overflow: ellipsis; }
         .sidebar-link:hover { background: var(--surface-2); color: var(--ink); }
-        .sidebar-link.active { background: var(--gold-tint); color: var(--ink); font-weight: 600; }
-        .sidebar-link.active::before { transform: scaleY(1); }
-        .style-logout { color: var(--danger); margin-top: 12px; }
+        .sidebar-link:hover svg { color: var(--brown); }
+
+        /* Active state: a subtle capsule that spans the full row, so it is always centered in the list */
+        .sidebar-link.active { background: var(--gold-tint); color: var(--ink); font-weight: 600; box-shadow: inset 0 0 0 1px rgba(240, 172, 31, 0.45), 0 1px 2px rgba(96, 62, 30, 0.08); }
+        .sidebar-link.active svg { color: var(--brown); }
+
+        /* Change password: indented under Account Settings, smaller and quieter */
+        .sidebar-link.sub-link { height: 38px; padding-left: calc(var(--menu-pad-x) + var(--menu-sub-indent)); padding-right: 12px; font-size: 13px; font-weight: 500; color: var(--ink-faint); }
+        .sidebar-link.sub-link svg { width: 16px; height: 16px; }
+        .sidebar-link.sub-link { grid-template-columns: 16px minmax(0, 1fr) auto; column-gap: 10px; }
+        .sidebar-link.sub-link.active { color: var(--ink); }
+        /* Elbow connector from the parent row down to this one */
+        .sidebar-link.sub-link::before { content: ""; position: absolute; left: calc(var(--menu-pad-x) + 9px); top: -10px; height: 29px; width: 12px; border-left: 2px solid var(--line); border-bottom: 2px solid var(--line); border-bottom-left-radius: 8px; pointer-events: none; }
+        .secure-tag { justify-self: end; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--success); background: var(--success-soft); padding: 3px 8px; border-radius: 999px; line-height: 1; }
+
+        .unread-badge { display: none; justify-self: end; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--gold); color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; line-height: 20px; text-align: center; }
+        .unread-badge.show { display: inline-block; }
+
+        /* Separator before Log Out, then Log Out on the same grid as every other row */
+        .logout-divider { height: 1px; background: var(--line); margin: 10px var(--menu-pad-x) 6px; }
+        .style-logout { color: var(--danger); }
+        .style-logout svg { color: var(--danger); }
         .style-logout:hover { background: var(--danger-soft); color: var(--danger); }
-        .logout-divider { height: 1px; background: var(--line); margin: 12px 8px 0; }
+        .style-logout:hover svg { color: var(--danger); }
 
         /* ===================== Workspace ===================== */
         .workspace { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
 
-        /* Tab bar with sliding highlight */
-        .tab-bar { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border: 1px solid var(--line); padding: 5px; border-radius: 16px; box-shadow: var(--shadow-1); }
-        .tab-indicator { position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc((100% - 10px) / 4); border-radius: 11px; background: var(--gold-tint); box-shadow: inset 0 0 0 1px rgba(240, 172, 31, 0.5); transition: transform 0.45s var(--ease-out); }
-        .tab-bar[data-index="1"] .tab-indicator { transform: translateX(100%); }
-        .tab-bar[data-index="2"] .tab-indicator { transform: translateX(200%); }
-        .tab-bar[data-index="3"] .tab-indicator { transform: translateX(300%); }
-        .tab-btn { position: relative; z-index: 1; background: none; border: none; padding: 12px; font-size: 14px; font-weight: 600; color: var(--ink-soft); cursor: pointer; border-radius: 11px; font-family: 'Inter', sans-serif; transition: color 0.2s var(--ease-in-out); }
-        .tab-btn:hover { color: var(--ink); }
-        .tab-btn.active { color: var(--ink); }
-
-        .tab-panel { display: none; flex-direction: column; gap: 24px; }
+        .tab-panel { display: none; flex-direction: column; gap: 24px; scroll-margin-top: calc(var(--topbar-h) + 24px); }
         .tab-panel.active { display: flex; animation: panelIn 0.4s var(--ease-out) both; }
         @keyframes panelIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
-        .details-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-panel); padding: 36px; box-shadow: var(--shadow-1); }
-        @media (max-width: 560px) { .details-panel { padding: 24px 20px; } }
-        h2 { font-size: 26px; line-height: 32px; font-weight: 600; margin: 0 0 28px 0; letter-spacing: -0.01em; color: var(--brown); }
-
-        .photo-remove { background: none; border: none; color: var(--danger); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 10px; cursor: pointer; transition: background 0.2s var(--ease-in-out); }
-        .photo-remove:hover { background: var(--danger-soft); }
-        .profile-card .photo-remove { margin-top: 6px; font-size: 12px; padding: 6px 10px; }
-        .photo-remove:disabled { opacity: 0.6; cursor: not-allowed; }
+        /* Every content card shares the sidebar's radius, border and shadow */
+        .details-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-panel); padding: 40px; box-shadow: var(--shadow-panel); }
+        @media (max-width: 560px) { .details-panel { padding: 26px 20px; } }
+        h2 { font-size: 28px; line-height: 34px; font-weight: 600; margin: 0 0 6px 0; letter-spacing: -0.01em; color: var(--brown); }
+        h2:focus { outline: none; }
+        .panel-sub { margin: 0 0 30px; font-size: 14px; line-height: 22px; color: var(--ink-soft); }
 
         /* Forms */
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 22px; }
         @media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } }
         .form-group { display: flex; flex-direction: column; gap: 8px; }
 
         label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
-        input, textarea, select { padding: 13px 16px; border-radius: var(--radius-ctl); border: 1px solid var(--line); font-size: 14px; outline: none; background: var(--surface-2); color: var(--ink); font-family: inherit; transition: border-color 0.2s var(--ease-in-out), background 0.2s var(--ease-in-out), box-shadow 0.2s var(--ease-in-out); }
+        input, textarea, select { height: 48px; padding: 0 16px; border-radius: var(--radius-ctl); border: 1.5px solid var(--line); font-size: 14px; outline: none; background: var(--surface); color: var(--ink); font-family: inherit; transition: border-color 0.2s var(--ease-in-out), background 0.2s var(--ease-in-out), box-shadow 0.2s var(--ease-in-out); }
+        textarea { height: auto; padding: 13px 16px; }
+        input::placeholder, textarea::placeholder { color: #A8967A; }
         input:hover, textarea:hover, select:hover { border-color: #CDB88A; }
-        input:focus, textarea:focus, select:focus { border-color: var(--gold-deep); background: var(--surface); box-shadow: var(--ring); }
-        input[readonly] { color: var(--ink-faint); cursor: not-allowed; }
+        input:focus, textarea:focus, select:focus { border-color: var(--gold-deep); background: #fff; box-shadow: var(--ring); }
+        input[readonly] { background: var(--surface-2); color: var(--ink-faint); cursor: not-allowed; }
+        input[readonly]:hover { border-color: var(--line); }
+
+        .form-actions { display: flex; justify-content: flex-end; margin-top: 34px; padding-top: 24px; border-top: 1px solid var(--line); }
 
         /* Buttons */
-        .save-btn { background: var(--brown); color: var(--pale); border: none; height: 44px; padding: 0 22px; border-radius: var(--radius-ctl); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s var(--ease-in-out), transform 0.2s var(--ease-out); width: fit-content; text-decoration: none; text-align: center; font-family: 'Inter', sans-serif; }
+        .save-btn { background: var(--brown); color: var(--pale); border: none; height: 46px; padding: 0 24px; border-radius: var(--radius-ctl); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s var(--ease-in-out), transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out); width: fit-content; text-decoration: none; text-align: center; font-family: 'Inter', sans-serif; }
         .save-btn:hover { transform: translateY(-1px); }
         .save-btn:active { transform: scale(0.97); transition-duration: 0.12s; }
         .save-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .save-btn.green-btn { background: var(--gold); color: var(--ink); font-weight: 700; }
-        .save-btn.green-btn:hover { background: var(--gold-deep); }
+        .save-btn.green-btn { background: var(--gold); color: var(--ink); font-weight: 700; min-width: 160px; box-shadow: 0 12px 22px -10px rgba(240, 172, 31, 0.75), 0 2px 4px rgba(43, 27, 12, 0.08); }
+        .save-btn.green-btn:hover { background: var(--gold-deep); box-shadow: 0 16px 26px -10px rgba(240, 172, 31, 0.85), 0 2px 4px rgba(43, 27, 12, 0.08); }
         .save-btn.secondary-btn { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
         .save-btn.secondary-btn:hover { border-color: var(--brown); background: var(--gold-tint); }
         .save-btn.danger-btn { background: var(--danger-soft); color: var(--danger); }
@@ -177,7 +226,8 @@
         .order-body p.item-sub.cancelled-note { color: var(--danger); font-weight: 600; }
         .action-flex { display: flex; gap: 12px; align-items: center; }
         .price-tag { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 18px; letter-spacing: -0.02em; }
-        .reviewed-note { font-size: 13px; font-weight: 600; color: var(--success); }
+        .reviewed-tag { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-faint); font-size: 12.5px; font-weight: 600; letter-spacing: 0.01em; cursor: not-allowed; user-select: none; pointer-events: none; }
+        .reviewed-tag svg { width: 14px; height: 14px; flex-shrink: 0; }
 
         /* Delivery details shown at the bottom of each order (dashed rule = stitch line) */
         .delivery-box { margin-top: 16px; padding-top: 16px; border-top: 2px dashed var(--line); font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
@@ -186,8 +236,6 @@
         .delivery-title { display: block; font-size: 13px; font-weight: 600; color: var(--brown); margin-bottom: 4px; }
         .delivery-pay { margin-top: 8px; }
 
-        .unread-badge { display: none; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 8px; border-radius: 10px; background: var(--gold); color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; line-height: 20px; text-align: center; }
-        .unread-badge.show { display: inline-block; }
         .notice-item { border: 1px solid var(--line); border-radius: var(--radius-card); padding: 16px 20px; margin-bottom: 12px; background: var(--surface); }
         .notice-item:last-child { margin-bottom: 0; }
         .notice-item.notice-new { border-color: var(--gold-deep); background: var(--gold-tint); }
@@ -208,7 +256,7 @@
         .star-rating-label { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
         .review-done { color: var(--success); font-weight: 600; margin: 0; }
 
-        /* Checkout info cards */
+        /* Payment & shipping info cards */
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media (max-width: 560px) { .card-grid { grid-template-columns: 1fr; } }
         .info-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-card); padding: 24px; display: flex; flex-direction: column; gap: 10px; }
@@ -219,6 +267,26 @@
         /* Toast */
         .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 16px); background: var(--brown); color: var(--pale); padding: 12px 18px; border-radius: var(--radius-ctl); font-size: 14px; font-weight: 500; box-shadow: var(--shadow-3); opacity: 0; pointer-events: none; transition: opacity 0.2s var(--ease-in-out), transform 0.32s var(--ease-out); z-index: 200; }
         .toast.show { opacity: 1; transform: translate(-50%, 0); }
+        /* Success toast: brand brown with a gold check */
+        .toast.success { display: flex; align-items: center; gap: 10px; padding: 13px 20px 13px 14px; background: linear-gradient(180deg, #6B4723 0%, #55371A 100%); letter-spacing: 0.005em; }
+        .toast.success::before { content: "\2713"; flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: var(--ink); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+        /* My reviews */
+        .review-card { border: 1px solid var(--line); border-radius: var(--radius-card); padding: 22px 24px; margin-bottom: 16px; background: var(--surface); box-shadow: var(--shadow-1); transition: box-shadow 0.32s var(--ease-out), opacity 0.3s ease, transform 0.3s ease; }
+        .review-card:last-child { margin-bottom: 0; }
+        .review-card.removing { opacity: 0; transform: scale(0.98); }
+        .review-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+        .review-card-head h4 { margin: 0; font-size: 17px; font-weight: 600; color: var(--brown); }
+        .review-meta { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+        .review-stars { font-size: 18px; letter-spacing: 2px; color: #E0A400; white-space: nowrap; }
+        .review-stars .off { color: var(--line); }
+        .review-text { margin: 0; font-size: 14px; line-height: 22px; color: var(--ink-soft); word-break: break-word; }
+        .review-actions { display: flex; gap: 10px; margin-top: 16px; }
+        .review-actions .save-btn { height: 38px; padding: 0 18px; font-size: 13px; }
+        .review-edit { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+        .review-card.editing .review-edit { display: block; animation: panelIn 0.4s var(--ease-out) both; }
+        .review-card.editing .review-text, .review-card.editing .review-actions { display: none; }
+        .review-edit .edit-actions { display: flex; gap: 10px; margin-top: 18px; }
 
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -228,7 +296,7 @@
 </head>
 <body>
 
-    <nav>
+    <nav class="top-nav" aria-label="Main navigation">
         <a href="/shop" class="logo">S<span class="logo-accent">TEFA</span></a>
         <div class="nav-links">
             <a href="/shop">
@@ -244,7 +312,7 @@
     </nav>
 
     <main>
-        <!-- Sidebar identity card -->
+        <!-- Sidebar: identity card and the only navigation on this page -->
         <aside class="profile-card">
             <div class="avatar avatar-upload" id="avatar-box" role="button" tabindex="0" aria-label="Change profile photo">
                 <span class="avatar-letter" id="avatar-initial">S</span>
@@ -259,31 +327,53 @@
             <button type="button" class="photo-remove" id="avatar-remove" style="display: none;">Remove photo</button>
             <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" hidden>
 
-            <div class="sidebar-menu">
-                <a href="#" class="sidebar-link active" data-tab="info-section">Account Settings</a>
-                <a href="#" class="sidebar-link" data-tab="orders-section">Order History</a>
-                <a href="#" class="sidebar-link" data-tab="checkout-section">Checkout Info</a>
-                <a href="#" class="sidebar-link" data-tab="notices-section">Notifications <span class="unread-badge" id="side-unread"></span></a>
-                <a href="/cart" class="sidebar-link">Cart</a>
-                <div class="logout-divider"></div>
-                <a href="/shop" class="sidebar-link style-logout" id="logout-link">Log Out</a>
-            </div>
+            <!-- Every link below is a direct child of one flex column, so they all share the same left edge -->
+            <nav class="sidebar-menu" aria-label="Account navigation">
+                <a href="#" class="sidebar-link active" data-tab="info-section">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+                    <span class="link-label">Account Settings</span>
+                </a>
+                <a href="#" class="sidebar-link sub-link" data-tab="password-section">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"></circle><path d="M11 12l9-9M16 7l3 3M14 9l2 2"></path></svg>
+                    <span class="link-label">Change password</span>
+                    <span class="secure-tag">Secure</span>
+                </a>
+                <a href="#" class="sidebar-link" data-tab="orders-section">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"></path><path d="M9.5 8h5M9.5 12h5"></path></svg>
+                    <span class="link-label">Order History</span>
+                </a>
+                <a href="#" class="sidebar-link" data-tab="reviews-section">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"></path></svg>
+                    <span class="link-label">My Reviews</span>
+                </a>
+                <a href="#" class="sidebar-link" data-tab="checkout-section">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"></rect><path d="M2.5 10h19M6.5 15h4"></path></svg>
+                    <span class="link-label">Payment &amp; Shipping</span>
+                </a>
+                <a href="#" class="sidebar-link" data-tab="notices-section">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
+                    <span class="link-label">Notifications</span>
+                    <span class="unread-badge" id="side-unread"></span>
+                </a>
+                <a href="/cart" class="sidebar-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1.5"></circle><circle cx="18" cy="21" r="1.5"></circle><path d="M2.5 3h2l2.7 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 8H6"></path></svg>
+                    <span class="link-label">Cart</span>
+                </a>
+                <div class="logout-divider" role="separator"></div>
+                <a href="/shop" class="sidebar-link style-logout" id="logout-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>
+                    <span class="link-label">Log Out</span>
+                </a>
+            </nav>
         </aside>
 
-        <section class="workspace">
+        <section class="workspace" id="workspace">
 
-            <div class="tab-bar" id="tab-bar" data-index="0" role="tablist">
-                <span class="tab-indicator" aria-hidden="true"></span>
-                <button class="tab-btn active" role="tab" data-tab="info-section">Account Settings</button>
-                <button class="tab-btn" role="tab" data-tab="orders-section">Order History</button>
-                <button class="tab-btn" role="tab" data-tab="checkout-section">Checkout Info</button>
-                <button class="tab-btn" role="tab" data-tab="notices-section">Notifications <span class="unread-badge" id="tab-unread"></span></button>
-            </div>
-
-            <!-- TAB 1: Account settings (saved through the API) -->
+            <!-- Account Settings (saved through the API) -->
             <div id="info-section" class="tab-panel active">
                 <div class="details-panel">
-                    <h2>Account information</h2>
+                    <h2 tabindex="-1">Account Information</h2>
+                    <p class="panel-sub">Keep your details up to date so checkout and delivery stay quick.</p>
 
                     <form id="profile-info-form">
                         <div class="form-row">
@@ -308,23 +398,30 @@
                             </div>
                         </div>
 
-                        <div class="form-group" style="margin-bottom: 28px;">
+                        <div class="form-group">
                             <label for="input-address">Delivery street address</label>
                             <input type="text" id="input-address" placeholder="House/Apartment Number, Street Name, Barangay Name" value="" required>
                         </div>
 
-                        <button type="submit" class="save-btn green-btn">Save changes</button>
+                        <div class="form-actions">
+                            <button type="submit" class="save-btn green-btn">Save changes</button>
+                        </div>
                     </form>
                 </div>
+            </div>
 
+            <!-- Change password (its own page, opened from the sidebar) -->
+            <div id="password-section" class="tab-panel">
                 <div class="details-panel">
-                    <h2>Change password</h2>
+                    <h2 tabindex="-1">Change Password</h2>
+                    <p class="panel-sub">Choose a strong password you do not use anywhere else. You will stay signed in on this device.</p>
+
                     <form id="password-form">
-                        <div class="form-group" style="margin-bottom: 20px;">
+                        <div class="form-group" style="margin-bottom: 22px;">
                             <label for="pw-current">Current password</label>
                             <input type="password" id="pw-current" autocomplete="current-password" required>
                         </div>
-                        <div class="form-row" style="margin-bottom: 28px;">
+                        <div class="form-row" style="margin-bottom: 0;">
                             <div class="form-group">
                                 <label for="pw-new">New password</label>
                                 <input type="password" id="pw-new" minlength="8" placeholder="Minimum 8 characters" autocomplete="new-password" required>
@@ -334,15 +431,19 @@
                                 <input type="password" id="pw-confirm" minlength="8" autocomplete="new-password" required>
                             </div>
                         </div>
-                        <button type="submit" class="save-btn green-btn">Update password</button>
+
+                        <div class="form-actions">
+                            <button type="submit" class="save-btn green-btn">Update password</button>
+                        </div>
                     </form>
                 </div>
             </div>
 
-            <!-- TAB 2: Orders (loaded from the API) -->
+            <!-- Orders (loaded from the API) -->
             <div id="orders-section" class="tab-panel">
                 <div class="details-panel">
-                    <h2>Order history</h2>
+                    <h2 tabindex="-1">Order History</h2>
+                    <p class="panel-sub">Track, cancel or review the orders you have placed.</p>
 
                     <div id="orders-list">
                         <p class="orders-status">Loading your orders...</p>
@@ -352,10 +453,22 @@
                 </div>
             </div>
 
-            <!-- TAB 3: Checkout info -->
+            <!-- My reviews (edit or delete) -->
+            <div id="reviews-section" class="tab-panel">
+                <div class="details-panel">
+                    <h2 tabindex="-1">My Reviews</h2>
+                    <p class="panel-sub">Edit or delete the reviews you have written.</p>
+                    <div id="reviews-list">
+                        <p class="orders-status">Loading your reviews...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment & shipping -->
             <div id="checkout-section" class="tab-panel">
                 <div class="details-panel">
-                    <h2>Checkout information</h2>
+                    <h2 tabindex="-1">Payment &amp; Shipping</h2>
+                    <p class="panel-sub">What we use when you check out.</p>
                     <div class="card-grid">
                         <div class="info-card">
                             <h4>Shipping address</h4>
@@ -371,10 +484,11 @@
                 </div>
             </div>
 
-            <!-- TAB 4: Notifications (delivery updates the admin sends) -->
+            <!-- Notifications (delivery updates the admin sends) -->
             <div id="notices-section" class="tab-panel">
                 <div class="details-panel">
-                    <h2>Notifications</h2>
+                    <h2 tabindex="-1">Notifications</h2>
+                    <p class="panel-sub">Delivery updates for your orders appear here.</p>
                     <div id="notices-list">
                         <p class="orders-status">Loading your notifications...</p>
                     </div>
@@ -403,9 +517,10 @@
         function money(n) { return '$' + Number(n || 0).toFixed(2); }
 
         let toastTimer;
-        function showToast(message) {
+        function showToast(message, kind) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
+            toast.classList.toggle('success', kind === 'success');
             toast.classList.add('show');
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
@@ -433,22 +548,38 @@
             return (json && json.message) || fallback;
         }
 
-        // ---------- Tabs ----------
-        const TAB_ORDER = ['info-section', 'orders-section', 'checkout-section', 'notices-section'];
+        // ---------- Sidebar navigation ----------
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-        function switchTab(sectionId) {
+        // Bring the top header of the opened panel into view (smooth, and instant for reduced-motion users).
+        // The panel's scroll-margin-top keeps it clear of the sticky top bar.
+        function scrollPanelToTop(panel) {
+            panel.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+
+            // Move keyboard / screen reader focus to the panel heading without causing a second scroll
+            const heading = panel.querySelector('h2');
+            if (heading) heading.focus({ preventScroll: true });
+        }
+
+        function switchTab(sectionId, options) {
+            const panel = document.getElementById(sectionId);
+            if (!panel) return;
+
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
-
-            document.getElementById('tab-bar').dataset.index = TAB_ORDER.indexOf(sectionId);
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === sectionId));
+            panel.classList.add('active');
             document.querySelectorAll('.sidebar-link[data-tab]').forEach(l => l.classList.toggle('active', l.dataset.tab === sectionId));
 
             if (sectionId === 'orders-section') loadOrders();
+            if (sectionId === 'reviews-section') loadReviews();
             if (sectionId === 'notices-section') loadNotices(true);
+
+            // Wait one frame so the newly shown panel has its final position before scrolling
+            if (!options || options.scroll !== false) {
+                requestAnimationFrame(() => scrollPanelToTop(panel));
+            }
         }
 
-        document.querySelectorAll('.tab-btn, .sidebar-link[data-tab]').forEach(el => {
+        document.querySelectorAll('.sidebar-link[data-tab]').forEach(el => {
             el.addEventListener('click', function (e) {
                 e.preventDefault();
                 switchTab(this.dataset.tab);
@@ -491,7 +622,7 @@
             }));
         }
 
-        // Show the photo in the sidebar and in the photo row, or fall back to the initial letter
+        // Show the photo in the sidebar, or fall back to the initial letter
         function setAvatar(url) {
             currentAvatar = url || '';
             [['avatar-box', 'avatar-img']].forEach(function (pair) {
@@ -655,7 +786,7 @@
             avatarBoxes.forEach(box => box.classList.remove('busy'));
         }
 
-        // Pick a file: click (or Enter / Space) on either avatar circle
+        // Pick a file: click (or Enter / Space) on the avatar circle
         avatarFile.addEventListener('change', function () {
             const file = avatarFile.files[0];
             avatarFile.value = '';   // lets the same file be chosen again later
@@ -775,7 +906,7 @@
             cancelled:  { label: 'Cancelled',           cls: 'cancelled' }
         };
 
-        let reviewedIds = new Set();      // product ids this customer already reviewed
+        let reviewedIds = new Set();      // 'orderId:productId' keys this customer already reviewed
         const orderItemsById = {};        // normalised items per order, used by the review form
 
         function formatDate(iso) {
@@ -798,8 +929,11 @@
             };
         }
 
-        function needsReview(item) {
-            return !item.productId || !reviewedIds.has(Number(item.productId));
+        // Each purchase (order + product) can be reviewed once, so buying the same strap again lets you review it again
+        function reviewKey(orderId, productId) { return Number(orderId) + ':' + Number(productId); }
+
+        function needsReview(item, orderId) {
+            return !item.productId || !reviewedIds.has(reviewKey(orderId, item.productId));
         }
 
         // Delivery details work with both response shapes: order.shipping.{...} or flat shipping_* fields
@@ -845,9 +979,9 @@
 
             if (status === 'completed') {
                 subLine = '<p class="item-sub fulfilled">\u2713 Delivered and paid</p>';
-                action = items.some(needsReview)
+                action = items.some(it => needsReview(it, order.id))
                     ? '<button type="button" class="save-btn secondary-btn" onclick="openReview(this)">Leave a review</button>'
-                    : '<span class="reviewed-note">\u2713 Product already reviewed</span>';
+                    : '<span class="reviewed-tag" role="status" aria-disabled="true" title="You have already reviewed this purchase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Reviewed \u2713</span>';
             } else if (status === 'cancelled') {
                 subLine = '<p class="item-sub cancelled-note">This order was cancelled</p>';
                 action = '';
@@ -899,7 +1033,7 @@
 
                 if (mineRes && mineRes.ok) {
                     const mine = await mineRes.json();
-                    reviewedIds = new Set((mine.data || []).map(r => Number(r.product_id)));
+                    reviewedIds = new Set((mine.data || []).map(r => reviewKey(r.order_id, r.product_id)));
                 }
 
                 const json = await res.json();
@@ -958,10 +1092,10 @@
             return match.id;
         }
 
-        function reviewFormHtml(items) {
+        function reviewFormHtml(items, orderId) {
             const options = items
                 .map((it, i) => ({ it: it, i: i }))
-                .filter(x => needsReview(x.it))
+                .filter(x => needsReview(x.it, orderId))
                 .map(x => '<option value="' + x.i + '">' + esc(x.it.name) + '</option>')
                 .join('');
 
@@ -1003,7 +1137,7 @@
                 reviewCount++;
                 formBox = document.createElement('div');
                 formBox.className = 'review-form-box';
-                formBox.innerHTML = reviewFormHtml(items);
+                formBox.innerHTML = reviewFormHtml(items, box.dataset.id);
                 box.appendChild(formBox);
 
                 formBox.querySelectorAll('.star-rating').forEach(initStarRating);
@@ -1027,17 +1161,17 @@
                         const res = await fetch('/api/reviews', {
                             method: 'POST',
                             headers: authHeaders(),
-                            body: JSON.stringify({ product_id: productId, rating: Number(rating), comment: comment })
+                            body: JSON.stringify({ product_id: productId, order_id: Number(box.dataset.id), rating: Number(rating), comment: comment })
                         });
 
                         if (res.status === 401) { sessionExpired(); return; }
 
                         const json = await res.json().catch(() => ({}));
-                        if (!res.ok) throw new Error(errorText(json, 'Could not submit the review.'));
+                        if (!res.ok) throw new Error([404, 405].includes(res.status) || res.status >= 500 ? 'We couldn\'t submit your review. Please try again.' : errorText(json, 'We couldn\'t submit your review. Please try again.'));
 
-                        reviewedIds.add(Number(productId));
+                        reviewedIds.add(reviewKey(box.dataset.id, productId));
                         formBox.innerHTML = '<p class="review-done">\u2713 Review submitted. Thank you for your feedback.</p>';
-                        showToast('Review submitted');
+                        showToast('Review submitted successfully', 'success');
                         setTimeout(loadOrders, 1500);
                     } catch (err) {
                         submitBtn.disabled = false;
@@ -1050,12 +1184,13 @@
             btn.style.display = 'none';
         }
 
-        function initStarRating(container) {
+        function initStarRating(container, initial) {
             const stars = container.querySelectorAll('.star');
             const labelEl = container.parentElement.querySelector('.star-rating-label');
             const hiddenInput = container.parentElement.querySelector('input[type="hidden"]');
             const labels = { 1: 'Bad', 2: 'Poor', 3: 'Average', 4: 'Good', 5: 'Excellent' };
-            let selected = 0;
+            let selected = Number(initial) || 0;
+            if (hiddenInput && selected) hiddenInput.value = selected;
 
             function render(value) {
                 stars.forEach(s => s.classList.toggle('filled', Number(s.dataset.value) <= value));
@@ -1071,16 +1206,165 @@
                 });
             });
             container.addEventListener('mouseleave', () => render(selected));
-            render(0);
+            render(selected);
         }
+
+        // ---------- My reviews (GET /api/reviews/mine, PUT and DELETE /api/reviews/{id}) ----------
+        let myReviews = [];
+
+        function reviewProductName(r) {
+            const p = r.product && (r.product.data || r.product);
+            return (p && p.name) || r.product_name || ('Product #' + r.product_id);
+        }
+
+        function starsHtml(rating) {
+            const n = Math.max(0, Math.min(5, Number(rating) || 0));
+            return '<span class="review-stars" aria-label="' + n + ' out of 5 stars">' +
+                '\u2605'.repeat(n) + '<span class="off">' + '\u2605'.repeat(5 - n) + '</span></span>';
+        }
+
+        function reviewCardHtml(r) {
+            const edited = r.updated_at && r.created_at && r.updated_at !== r.created_at;
+            return '<div class="review-card" data-id="' + esc(r.id) + '">' +
+                '<div class="review-card-head">' +
+                    '<div><h4>' + esc(reviewProductName(r)) + '</h4>' +
+                    '<div class="review-meta">' + esc(formatDate(r.created_at)) + (edited ? ' \u00B7 edited' : '') + '</div></div>' +
+                    starsHtml(r.rating) +
+                '</div>' +
+                '<p class="review-text">' + esc(r.comment || '') + '</p>' +
+                '<div class="review-actions">' +
+                    '<button type="button" class="save-btn secondary-btn" data-action="edit">Edit</button>' +
+                    '<button type="button" class="save-btn danger-btn" data-action="delete">Delete</button>' +
+                '</div>' +
+                '<form class="review-edit">' +
+                    '<div class="form-group">' +
+                        '<label>Star rating</label>' +
+                        '<div class="star-rating">' +
+                            [1, 2, 3, 4, 5].map(i => '<span class="star" data-value="' + i + '">\u2605</span>').join('') +
+                        '</div>' +
+                        '<div class="star-rating-label">Select a rating</div>' +
+                        '<input type="hidden" name="rating">' +
+                    '</div>' +
+                    '<div class="form-group" style="margin-top: 16px;">' +
+                        '<label for="edit-text-' + esc(r.id) + '">Your feedback</label>' +
+                        '<textarea id="edit-text-' + esc(r.id) + '" rows="3" required style="resize: none;"></textarea>' +
+                    '</div>' +
+                    '<div class="edit-actions">' +
+                        '<button type="submit" class="save-btn green-btn">Save changes</button>' +
+                        '<button type="button" class="save-btn secondary-btn" data-action="cancel">Cancel</button>' +
+                    '</div>' +
+                '</form>' +
+            '</div>';
+        }
+
+        function renderReviews() {
+            const list = document.getElementById('reviews-list');
+            if (!myReviews.length) {
+                list.innerHTML = '<p class="orders-status">You have not written any reviews yet. After an order is delivered, you can review its products from Order History.</p>';
+                return;
+            }
+            list.innerHTML = myReviews.map(reviewCardHtml).join('');
+        }
+
+        async function loadReviews() {
+            const list = document.getElementById('reviews-list');
+            try {
+                const res = await fetch('/api/reviews/mine', { headers: authHeaders() });
+                if (res.status === 401) { sessionExpired(); return; }
+                if (res.status === 403) {
+                    list.innerHTML = '<p class="orders-status">Reviews are only available for customer accounts.</p>';
+                    return;
+                }
+                const json = await res.json();
+                myReviews = Array.isArray(json) ? json : (json.data || []);
+                reviewedIds = new Set(myReviews.map(r => reviewKey(r.order_id, r.product_id)));
+                renderReviews();
+            } catch (err) {
+                list.innerHTML = '<p class="orders-status">Could not load your reviews. Please try again.</p>';
+            }
+        }
+
+        function openReviewEdit(card, review) {
+            const form = card.querySelector('.review-edit');
+            if (!form.dataset.ready) {
+                initStarRating(form.querySelector('.star-rating'), review.rating);
+                form.dataset.ready = '1';
+                form.addEventListener('submit', e => { e.preventDefault(); saveReviewEdit(card, review, form); });
+            }
+            form.querySelector('textarea').value = review.comment || '';
+            card.classList.add('editing');
+            form.querySelector('textarea').focus();
+        }
+
+        async function saveReviewEdit(card, review, form) {
+            const rating = Number(form.querySelector('input[name="rating"]').value);
+            const comment = form.querySelector('textarea').value.trim();
+            if (!rating) { showToast('Please choose a star rating first.'); return; }
+            if (!comment) { showToast('Please write your feedback.'); return; }
+
+            const button = form.querySelector('button[type="submit"]');
+            button.disabled = true;
+            try {
+                const res = await fetch('/api/reviews/' + review.id, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ rating: rating, comment: comment })
+                });
+                if (res.status === 401) { sessionExpired(); return; }
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error([404, 405].includes(res.status) || res.status >= 500 ? 'We couldn\'t update your review. Please try again.' : errorText(json, 'We couldn\'t update your review. Please try again.'));
+
+                const updated = json.data || {};
+                Object.assign(review, { rating: rating, comment: comment, updated_at: updated.updated_at || new Date().toISOString() });
+                renderReviews();
+                showToast('Review updated successfully', 'success');
+            } catch (err) {
+                button.disabled = false;
+                showToast(err.message);
+            }
+        }
+
+        async function deleteReview(card, review) {
+            if (!confirm('Delete your review of ' + reviewProductName(review) + '? This cannot be undone.')) return;
+
+            const buttons = card.querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+            try {
+                const res = await fetch('/api/reviews/' + review.id, { method: 'DELETE', headers: authHeaders() });
+                if (res.status === 401) { sessionExpired(); return; }
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error([404, 405].includes(res.status) || res.status >= 500 ? 'We couldn\'t delete your review. Please try again.' : errorText(json, 'We couldn\'t delete your review. Please try again.'));
+
+                card.classList.add('removing');
+                setTimeout(function () {
+                    myReviews = myReviews.filter(r => r.id !== review.id);
+                    reviewedIds.delete(reviewKey(review.order_id, review.product_id));   // the product can be reviewed again from Order History
+                    renderReviews();
+                }, 300);
+                showToast('Review deleted successfully', 'success');
+            } catch (err) {
+                buttons.forEach(b => b.disabled = false);
+                showToast(err.message);
+            }
+        }
+
+        document.getElementById('reviews-list').addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const card = btn.closest('.review-card');
+            const review = myReviews.find(r => String(r.id) === card.dataset.id);
+            if (!review) return;
+
+            if (btn.dataset.action === 'edit') openReviewEdit(card, review);
+            if (btn.dataset.action === 'cancel') card.classList.remove('editing');
+            if (btn.dataset.action === 'delete') deleteReview(card, review);
+        });
 
         // ---------- Notifications (GET /api/notices, POST /api/notices/read) ----------
         function setUnreadBadges(count) {
-            ['side-unread', 'tab-unread'].forEach(id => {
-                const badge = document.getElementById(id);
-                badge.textContent = count;
-                badge.classList.toggle('show', count > 0);
-            });
+            const badge = document.getElementById('side-unread');
+            badge.textContent = count;
+            badge.classList.toggle('show', count > 0);
         }
 
         function formatDateTime(iso) {

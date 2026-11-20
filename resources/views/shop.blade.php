@@ -9,8 +9,9 @@
     <script src="/js/cart-store.js"></script>
     <style>
         :root {
-            /* Palette: Brown, Pale Gold, Glowing Gold, plus tints of them */
+            /* Palette: dark leather header, warm cream body, gold accents */
             --brown: #603E1E;
+            --brown-dark: #3A2411;
             --pale: #F1D9A8;
             --gold: #FFC34D;
             --gold-deep: #F0AC1F;
@@ -35,11 +36,15 @@
 
             --shadow-1: 0 1px 2px rgba(43, 27, 12, 0.05);
             --shadow-3: 0 22px 44px -16px rgba(43, 27, 12, 0.24), 0 6px 14px -6px rgba(43, 27, 12, 0.10);
+            --shadow-hover: 0 30px 56px -18px rgba(43, 27, 12, 0.38), 0 10px 22px -10px rgba(43, 27, 12, 0.18);
             --ring: 0 0 0 4px var(--gold-tint);
 
             --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
             --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
             --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+            /* Delay before the product card grows after the cursor enters (0s = instant) */
+            --hover-delay: 0s;
         }
 
         * { box-sizing: border-box; }
@@ -50,9 +55,9 @@
         nav a:focus-visible, nav input:focus-visible { outline-color: var(--gold); }
 
         /* ===================== Top Navigation ===================== */
-        nav { background: var(--brown); padding: 14px 48px; display: flex; justify-content: space-between; align-items: center; gap: 40px; position: sticky; top: 0; z-index: 10; }
+        nav { background: linear-gradient(180deg, var(--brown) 0%, #55371A 100%); padding: 14px 48px; display: flex; justify-content: space-between; align-items: center; gap: 40px; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 0 rgba(241, 217, 168, 0.14), 0 14px 28px -20px rgba(43, 27, 12, 0.7); }
         .logo { display: inline-flex; align-items: center; text-decoration: none; flex-shrink: 0; }
-        .logo-word { font-family: 'Fraunces', Georgia, serif; font-size: 27px; font-weight: 700; color: var(--pale); letter-spacing: 0.02em; line-height: 1; }
+        .logo-word { font-family: 'Fraunces', Georgia, serif; font-size: 27px; font-weight: 700; color: var(--pale); letter-spacing: 0.06em; line-height: 1; }
         .logo-word .logo-span { color: var(--gold); }
 
         .search-wrap { position: relative; flex: 1; max-width: 520px; width: 100%; }
@@ -78,22 +83,31 @@
         .nav-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); display: block; object-fit: cover; background: var(--pale); }
 
         /* ===================== Layout ===================== */
-        .container { display: flex; max-width: 1260px; margin: 40px auto 64px; padding: 0 40px; gap: 32px; align-items: flex-start; }
+        .container { display: flex; max-width: 1260px; margin: 40px auto 64px; padding: 0 40px; gap: 36px; align-items: flex-start; }
         @media (max-width: 800px) {
             nav { padding: 12px 20px; gap: 16px; flex-wrap: wrap; }
             .search-wrap { order: 3; max-width: none; flex-basis: 100%; }
             .container { flex-direction: column; padding: 0 20px; }
         }
 
-        /* Sidebar */
-        .sidebar { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-panel); box-shadow: var(--shadow-1); padding: 16px; width: 248px; min-width: 248px; position: sticky; top: 96px; max-height: calc(100vh - 116px); overflow-y: auto; }
+        /* Sidebar: its top edge lines up with the page title */
+        .sidebar { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-panel); box-shadow: var(--shadow-1); padding: 16px; width: 248px; min-width: 248px; position: sticky; top: 96px; max-height: calc(100vh - 116px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+        .sidebar::-webkit-scrollbar { width: 8px; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
         @media (max-width: 800px) { .sidebar { width: 100%; min-width: 0; position: static; max-height: none; } }
-        .sidebar h2 { font-family: 'Inter', sans-serif; font-size: 13px; line-height: 16px; font-weight: 600; margin: 8px 12px 10px; color: var(--ink-faint); }
-        .filter-block { padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+        .sidebar h2 { font-family: 'Inter', sans-serif; font-size: 13px; line-height: 16px; font-weight: 600; margin: 8px 12px 12px; letter-spacing: 0.02em; color: var(--ink-faint); }
+        .filter-block { padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
         .filter-block:last-of-type { border-bottom: none; margin-bottom: 0; }
-        .filter-group { display: flex; flex-direction: column; gap: 4px; }
-        .filter-link { position: relative; text-decoration: none; color: var(--ink-soft); font-size: 15px; line-height: 24px; font-weight: 500; padding: 10px 14px; min-height: 44px; border-radius: var(--radius-ctl); transition: background 0.2s var(--ease-in-out), color 0.2s var(--ease-in-out); }
-        .filter-link::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--gold-deep); transform: scaleY(0); transition: transform 0.32s var(--ease-out); }
+        .filter-group { display: flex; flex-direction: column; gap: 2px; }
+        .cat-block summary { list-style: none; display: flex; align-items: center; justify-content: space-between; min-height: 36px; margin: 0; padding: 0 12px; border-radius: 10px; cursor: pointer; font-size: 13px; line-height: 16px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink-faint); transition: background 0.2s var(--ease-in-out), color 0.2s var(--ease-in-out); }
+        .cat-block summary::-webkit-details-marker { display: none; }
+        .cat-block summary:hover { background: var(--surface-2); color: var(--ink); }
+        .cat-block[open] summary { margin-bottom: 6px; }
+        .cat-chevron { width: 16px; height: 16px; flex-shrink: 0; transition: transform 0.25s var(--ease-out); }
+        .cat-block[open] .cat-chevron { transform: rotate(180deg); }
+        .filter-link { position: relative; text-decoration: none; color: var(--ink-soft); font-size: 14px; line-height: 20px; font-weight: 500; padding: 8px 12px; min-height: 36px; border-radius: var(--radius-ctl); transition: background 0.2s var(--ease-in-out), color 0.2s var(--ease-in-out); }
+        .filter-link::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--gold-deep); transform: scaleY(0); transition: transform 0.32s var(--ease-out); }
         .filter-link:hover { background: var(--surface-2); color: var(--ink); }
         .filter-link.active { background: var(--gold-tint); color: var(--ink); font-weight: 600; }
         .filter-link.active::before { transform: scaleY(1); }
@@ -103,7 +117,7 @@
         .chip:hover { border-color: var(--brown); color: var(--ink); }
         .chip[aria-pressed="true"] { background: var(--brown); border-color: var(--brown); color: var(--pale); }
         .check-list { display: flex; flex-direction: column; gap: 2px; padding: 0 6px; }
-        .check-item { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 4px 8px; border-radius: 8px; font-size: 14px; color: var(--ink-soft); cursor: pointer; }
+        .check-item { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 4px 8px; border-radius: 8px; font-size: 14px; color: var(--ink-soft); cursor: pointer; }
         .check-item:hover { background: var(--surface-2); color: var(--ink); }
         .check-item input { width: 17px; height: 17px; accent-color: var(--brown); cursor: pointer; flex-shrink: 0; }
         .filter-note { margin: 10px 12px 0; font-size: 13px; line-height: 20px; color: var(--ink-soft); }
@@ -113,25 +127,102 @@
         .clear-btn:hover { background: var(--brown); color: var(--pale); }
         .clear-btn.show { display: block; }
 
+        /* ---------- Combobox filters (Leather / Colour) ---------- */
+        .combo { position: relative; padding: 0 12px; }
+        .combo-input { width: 100%; height: 42px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+        .combo-input::placeholder { color: var(--ink-faint); }
+        .combo-input:hover { border-color: var(--brown); }
+        .combo-input:focus { border-color: var(--gold-deep); box-shadow: var(--ring); }
+        .combo-list { display: none; position: absolute; left: 12px; right: 12px; top: 46px; z-index: 20; margin: 0; padding: 4px; list-style: none; max-height: 220px; overflow-y: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-3); }
+        .combo-list.open { display: block; }
+        .combo-list li { padding: 9px 10px; border-radius: 8px; font-size: 14px; color: var(--ink-soft); cursor: pointer; }
+        .combo-list li.active, .combo-list li:hover { background: var(--gold-tint); color: var(--ink); }
+        .combo-list li.custom { font-style: italic; }
+        .combo-list li.none { cursor: default; color: var(--ink-faint); }
+        .combo-list li.none:hover { background: none; }
+        .combo-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .combo-tags:empty { display: none; }
+        .combo-tag { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--brown); background: var(--brown); color: var(--pale); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .combo-tag:hover { background: var(--ink); }
+        .combo-tag span { font-size: 14px; line-height: 1; opacity: 0.8; }
+
+        /* ---------- Mobile filters toggle ---------- */
+        .filter-toggle { display: none; align-items: center; gap: 10px; width: 100%; height: 48px; padding: 0 16px; border-radius: var(--radius-ctl); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: var(--shadow-1); transition: border-color 0.2s, background 0.2s; }
+        .filter-toggle:hover { border-color: var(--brown); background: var(--surface-2); }
+        .filter-toggle svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--ink-soft); }
+        .filter-toggle .filter-chevron { margin-left: auto; transition: transform 0.25s var(--ease-out); }
+        .filter-toggle[aria-expanded="true"] .filter-chevron { transform: rotate(180deg); }
+        .filter-badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--gold); color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+        .filter-badge[hidden] { display: none; }
+        @media (max-width: 800px) {
+            .container { gap: 16px; }
+            .filter-toggle { display: flex; }
+            .sidebar { display: none; }
+            .sidebar.open { display: block; }
+        }
+
+        /* ---------- Cards: keyboard focus + load more ---------- */
+        .card:focus-visible { outline: 3px solid var(--brown); outline-offset: 3px; }
+        .load-more-wrap { display: flex; justify-content: center; margin-top: 32px; }
+        .load-more-wrap[hidden] { display: none; }
+        .load-more-btn { height: 46px; padding: 0 28px; border-radius: var(--radius-ctl); border: 1px solid var(--brown); background: none; color: var(--brown); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s var(--ease-in-out), color 0.2s var(--ease-in-out); }
+        .load-more-btn:hover { background: var(--brown); color: var(--pale); }
+
         /* Content */
         .content-area { flex: 1; width: 100%; min-width: 0; }
-        .catalog-title { font-size: 34px; line-height: 42px; font-weight: 600; margin: 0 0 6px 0; letter-spacing: -0.01em; color: var(--brown); }
-        .catalog-sub { margin: 0 0 20px; font-size: 15px; color: var(--ink-soft); }
-        .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+        .catalog-title { font-size: 36px; line-height: 44px; font-weight: 600; margin: -2px 0 6px 0; letter-spacing: -0.015em; color: var(--brown); }
+        .catalog-sub { margin: 0 0 22px; font-size: 15px; line-height: 24px; color: var(--ink-soft); }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
         .result-count { font-size: 14px; color: var(--ink-soft); margin: 0; }
         .sort-wrap { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ink-soft); }
         .sort-select { height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
         .sort-select:hover { border-color: var(--brown); }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--gutter); width: 100%; }
-        .card { background: var(--surface); border-radius: var(--radius-card); border: 1px solid var(--line); box-shadow: var(--shadow-1); overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: transform 0.32s var(--ease-out), box-shadow 0.32s var(--ease-out); }
-        .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-3); }
-        .img-box { width: 100%; aspect-ratio: 4 / 3; background: var(--surface-2); overflow: hidden; display: block; border-bottom: 1px solid var(--line); }
-        .img-box img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s var(--ease-out); }
-        .card:hover .img-box img { transform: scale(1.04); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--gutter); width: 100%; align-items: stretch; }
 
-        .card-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
-        .card-body h3 { font-size: 19px; line-height: 26px; font-weight: 600; margin: 0; letter-spacing: -0.005em; }
+        /* ---------- Product card ----------
+           Hover: the card waits 1 second after the cursor enters, then scales up,
+           lifts and gains a soft shadow. Leaving the card resets it right away,
+           and a quick pass over the card does nothing, so the grid never jitters. */
+        .card {
+            position: relative;
+            z-index: 0;
+            background: var(--surface);
+            border-radius: var(--radius-card);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transform: translateY(0) scale(1);
+            transform-origin: center center;
+            will-change: transform;
+            /* Leaving the card: no delay, so it settles back quickly */
+            transition: transform 0.45s var(--ease-out) 0s, box-shadow 0.45s var(--ease-out) 0s, border-color 0.3s ease 0s;
+        }
+        .card:hover,
+        .card.demo-hover {
+            z-index: 5;
+            transform: translateY(-8px) scale(1.04);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--gold-deep);
+            /* Entering the card: wait the full delay before anything moves */
+            transition: transform 0.6s var(--ease-out) var(--hover-delay), box-shadow 0.6s var(--ease-out) var(--hover-delay), border-color 0.4s ease var(--hover-delay);
+        }
+        /* Demo state is shown straight away */
+        .card.demo-hover { transition-delay: 0s; }
+
+        /* Photos fill a square frame edge to edge. The straps are photographed
+           upright on white, so a square crop keeps the whole strap in view and leaves no empty bands. */
+        .img-box { position: relative; width: 100%; aspect-ratio: 1 / 1; background: #fff; overflow: hidden; display: block; border-bottom: 1px solid var(--line); }
+        .img-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block; transition: transform 0.6s var(--ease-out) 0s; }
+        .card:hover .img-box img,
+        .card.demo-hover .img-box img { transform: scale(1.03); transition-delay: var(--hover-delay); }
+        .card.demo-hover .img-box img { transition-delay: 0s; }
+
+        .card-body { padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+        .card-body h3 { font-size: 19px; line-height: 26px; font-weight: 600; margin: 0; min-height: 52px; letter-spacing: -0.005em; color: var(--ink); }
         .tag { background: var(--surface-2); color: var(--brown); font-size: 12px; line-height: 16px; font-weight: 600; padding: 4px 10px; border-radius: 6px; width: fit-content; }
         .spec-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: var(--ink-soft); }
         .lug-pill { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; background: var(--gold); color: var(--ink); padding: 3px 8px; border-radius: 6px; }
@@ -155,8 +246,15 @@
         .buy-btn:disabled, .icon-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
         .empty-state { color: var(--ink-soft); font-size: 14px; padding: 24px 0; grid-column: 1 / -1; }
 
+        /* Cursor arrow drawn over the card in the demo hover state (add ?hover-demo to the URL) */
+        .demo-cursor { position: absolute; z-index: 6; right: 34%; top: 38%; width: 34px; height: 34px; pointer-events: none; filter: drop-shadow(0 3px 5px rgba(43, 27, 12, 0.45)); display: none; }
+        .card.demo-hover .demo-cursor { display: block; }
+
         .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 16px); background: var(--brown); color: var(--pale); padding: 12px 18px; border-radius: var(--radius-ctl); font-size: 14px; font-weight: 500; box-shadow: var(--shadow-3); opacity: 0; pointer-events: none; transition: opacity 0.2s var(--ease-in-out), transform 0.32s var(--ease-out); z-index: 200; }
         .toast.show { opacity: 1; transform: translate(-50%, 0); }
+        /* Success toast: brand brown with a gold check */
+        .toast.success { display: flex; align-items: center; gap: 10px; padding: 13px 20px 13px 14px; background: linear-gradient(180deg, #6B4723 0%, #55371A 100%); letter-spacing: 0.005em; }
+        .toast.success::before { content: "\2713"; flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: var(--ink); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 
         /* ===================== Product Detail Modal ===================== */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(43, 27, 12, 0.5); backdrop-filter: blur(2px); z-index: 100; align-items: center; justify-content: center; padding: 24px; }
@@ -166,8 +264,8 @@
         .modal-close { position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--cloud); color: var(--ink-soft); font-size: 15px; cursor: pointer; z-index: 2; transition: background 0.2s, color 0.2s; }
         .modal-close:hover { background: var(--pale); color: var(--ink); }
         .modal-top { display: flex; gap: 0; flex-wrap: wrap; }
-        .modal-img { width: 280px; min-width: 240px; flex: 1; height: 280px; align-self: flex-start; background: var(--cloud); margin: 24px 0 24px 24px; border-radius: 14px; overflow: hidden; }
-        .modal-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .modal-img { flex: 1 1 240px; max-width: 320px; aspect-ratio: 1 / 1; align-self: flex-start; background: #fff; margin: 24px 0 24px 24px; border-radius: 14px; border: 1px solid var(--line); overflow: hidden; }
+        .modal-img img { width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block; }
         .modal-info { flex: 1.15; min-width: 260px; padding: 32px 32px 28px 28px; }
         .modal-info .tag { display: inline-block; margin-bottom: 14px; }
         .modal-info h2 { font-size: 26px; line-height: 32px; margin: 0 0 10px 0; letter-spacing: -0.01em; font-weight: 600; color: var(--brown); padding-right: 36px; }
@@ -176,19 +274,28 @@
         .modal-price { font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600; margin-bottom: 16px; letter-spacing: -0.02em; }
         .modal-desc { font-size: 14px; color: var(--ink-soft); line-height: 1.7; margin: 0 0 20px; }
 
-        .specs { display: none; margin: 0 0 16px; }
+        /* ---------- Specifications accordion ---------- */
+        .specs { display: none; margin: 0 0 20px; border: 1px solid var(--line); border-radius: var(--radius-ctl); background: var(--surface); }
         .specs.show { display: block; }
-        .specs h3 { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--ink-faint); }
-        .spec-list { margin: 0; border: 1px solid var(--line); border-radius: 12px; padding: 4px 14px; background: var(--surface-2); }
-        .spec-list div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+        .specs summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; cursor: pointer; border-radius: var(--radius-ctl); }
+        .specs summary::-webkit-details-marker { display: none; }
+        .specs summary:hover { background: var(--surface-2); }
+        .specs-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+        .specs-peek { margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .specs-chevron { width: 18px; height: 18px; flex-shrink: 0; color: var(--ink-soft); transition: transform 0.25s var(--ease-out); }
+        .specs[open] .specs-chevron { transform: rotate(180deg); }
+        .specs[open] summary { border-bottom: 1px solid var(--line); border-radius: var(--radius-ctl) var(--radius-ctl) 0 0; }
+        .specs-body { padding: 4px 14px 14px; }
+        .spec-list { margin: 0; }
+        .spec-list div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
         .spec-list div:last-child { border-bottom: none; }
         .spec-list dt { color: var(--ink-soft); font-weight: 500; }
         .spec-list dd { margin: 0; font-weight: 600; text-align: right; color: var(--ink); }
-        .lug-tip { display: none; margin: 0 0 20px; padding: 12px 14px; border-radius: 12px; background: var(--gold-tint); border-left: 3px solid var(--gold-deep); font-size: 13px; line-height: 20px; color: var(--ink); }
+        .lug-tip { display: none; margin: 4px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--gold-tint); border-left: 3px solid var(--gold-deep); font-size: 13px; line-height: 20px; color: var(--ink); }
         .lug-tip.show { display: block; }
         .lug-tip strong { font-weight: 600; }
 
-        .modal-actions { display: flex; gap: 10px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 4px; }
         .modal-actions .icon-btn { width: 50px; height: 50px; }
         .modal-actions .icon-btn svg { width: 21px; height: 21px; }
         .modal-actions .buy-btn { height: 50px; font-size: 15px; }
@@ -219,9 +326,28 @@
         .review-item .review-stars { color: #C98A00; font-size: 12px; }
         .review-item p { margin: 4px 0 0; font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
 
+        /* Edit and Delete icons on the customer's own review: hidden until the review is hovered */
+        .review-item { position: relative; }
+        .review-own-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px; padding: 0 2px; opacity: 0; transform: translateY(2px); transition: opacity 0.25s ease, transform 0.25s var(--ease-out); }
+        .review-item:hover .review-own-actions, .review-own-actions:focus-within { opacity: 1; transform: none; }
+        .review-icon-btn { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid transparent; background: transparent; color: var(--ink-faint); cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+        .review-icon-btn svg { width: 16px; height: 16px; }
+        .review-icon-btn:hover { background: var(--surface-2); color: var(--brown); border-color: var(--line); }
+        .review-icon-btn.danger:hover { background: #FBE7E2; color: #B3382F; border-color: #F0C9C3; }
+        .review-icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        @media (hover: none) { .review-own-actions { opacity: 1; } }
+        .review-edit-form { display: flex; flex-direction: column; gap: 10px; }
+        .review-edit-form textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-family: inherit; font-size: 13px; color: var(--ink); resize: vertical; min-height: 70px; outline: none; background: var(--panel); }
+        .review-edit-form textarea:focus { border-color: var(--gold-deep); box-shadow: var(--ring); }
+
+        /* Touch screens have no hover, so the delayed grow effect is left out */
+        @media (hover: none) {
+            .card:hover { transform: none; box-shadow: var(--shadow-1); border-color: var(--line); }
+            .card:hover .img-box img { transform: none; }
+        }
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-            .card:hover, .buy-btn:hover { transform: none; }
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }
+            .card:hover, .card.demo-hover, .buy-btn:hover { transform: none; }
         }
     </style>
 </head>
@@ -274,16 +400,26 @@
 
     <!-- Main Content -->
     <div class="container">
-        <aside class="sidebar" aria-label="Filters">
-            <div class="filter-block">
-                <h2>Categories</h2>
+        <button type="button" class="filter-toggle" id="filter-toggle" aria-expanded="false" aria-controls="filters-panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"></path></svg>
+            <span>Filters</span>
+            <span class="filter-badge" id="filter-badge" hidden>0</span>
+            <svg class="filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+
+        <aside class="sidebar" id="filters-panel" aria-label="Filters">
+            <details class="filter-block cat-block" open>
+                <summary>
+                    Categories
+                    <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+                </summary>
                 <div class="filter-group">
                     <a href="/shop" class="filter-link {{ !$activeCategory ? 'active' : '' }}">All Products</a>
                     @foreach($categoryNames as $categoryName)
                         <a href="/shop?category={{ urlencode($categoryName) }}" class="filter-link {{ $activeCategory === $categoryName ? 'active' : '' }}">{{ $categoryName }}</a>
                     @endforeach
                 </div>
-            </div>
+            </details>
 
             @if($lugWidths->count())
                 <div class="filter-block">
@@ -303,10 +439,10 @@
             @if($leatherTypes->count())
                 <div class="filter-block">
                     <h2>Leather</h2>
-                    <div class="check-list" data-group="leather">
-                        @foreach($leatherTypes as $t)
-                            <label class="check-item"><input type="checkbox" value="{{ mb_strtolower($t) }}"> {{ $t }}</label>
-                        @endforeach
+                    <div class="combo" data-group="leather" data-options="{{ $leatherTypes->values()->toJson() }}">
+                        <input type="text" class="combo-input" placeholder="Type or choose leather…" aria-label="Filter by leather" role="combobox" aria-autocomplete="list" aria-expanded="false" autocomplete="off">
+                        <ul class="combo-list" role="listbox"></ul>
+                        <div class="combo-tags"></div>
                     </div>
                 </div>
             @endif
@@ -314,10 +450,10 @@
             @if($colorNames->count())
                 <div class="filter-block">
                     <h2>Colour</h2>
-                    <div class="check-list" data-group="color">
-                        @foreach($colorNames as $c)
-                            <label class="check-item"><input type="checkbox" value="{{ mb_strtolower($c) }}"> {{ $c }}</label>
-                        @endforeach
+                    <div class="combo" data-group="color" data-options="{{ $colorNames->values()->toJson() }}">
+                        <input type="text" class="combo-input" placeholder="Type or choose colour…" aria-label="Filter by colour" role="combobox" aria-autocomplete="list" aria-expanded="false" autocomplete="off">
+                        <ul class="combo-list" role="listbox"></ul>
+                        <div class="combo-tags"></div>
                     </div>
                 </div>
             @endif
@@ -349,6 +485,10 @@
                 @forelse($products as $product)
                     <div class="card"
                          onclick="openProductModal(this)"
+                         tabindex="0"
+                         role="button"
+                         aria-label="View details: {{ $product->name }}"
+                         onkeydown="cardKey(event, this)"
                          data-id="{{ $product->id }}"
                          data-order="{{ $loop->index }}"
                          data-name="{{ $product->name }}"
@@ -364,7 +504,7 @@
                          data-length="{{ $product->length }}"
                          data-quick="{{ $product->quick_release ? 1 : 0 }}"
                          @if(isset($product->reviews) && count($product->reviews))
-                         data-reviews='{{ json_encode($product->reviews->map(fn($r) => ["author" => $r->author_name ?? "Verified Buyer", "rating" => $r->rating, "comment" => $r->comment])) }}'
+                         data-reviews='{{ json_encode($product->reviews->map(fn($r) => ["id" => $r->id, "user_id" => $r->user_id, "author" => $r->author_name ?? "Verified Buyer", "rating" => $r->rating, "comment" => $r->comment])) }}'
                          @endif
                     >
                         <div class="img-box">
@@ -399,6 +539,9 @@
                 @endforelse
                 <p class="empty-state" id="filter-empty" style="display: none;">No products match these filters. Clear a filter or try a different search.</p>
             </div>
+            <div class="load-more-wrap" id="load-more-wrap" hidden>
+                <button type="button" class="load-more-btn" id="load-more-btn"></button>
+            </div>
         </main>
     </div>
 
@@ -406,7 +549,7 @@
 
     <!-- Product Details Modal -->
     <div class="modal-overlay" id="product-modal" onclick="if(event.target === this) closeProductModal()">
-        <div class="modal-box">
+        <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-name">
             <button class="modal-close" onclick="closeProductModal()" aria-label="Close">✕</button>
             <div class="modal-top">
                 <div class="modal-img"><img id="modal-img" src="" alt=""></div>
@@ -420,11 +563,17 @@
                     <div class="modal-price" id="modal-price"></div>
                     <p class="modal-desc" id="modal-desc"></p>
 
-                    <div class="specs" id="modal-specs">
-                        <h3>Specifications</h3>
-                        <dl class="spec-list" id="modal-spec-list"></dl>
-                    </div>
-                    <div class="lug-tip" id="modal-lug-tip"></div>
+                    <details class="specs" id="modal-specs">
+                        <summary>
+                            <span class="specs-title">Specifications</span>
+                            <span class="specs-peek" id="modal-specs-peek"></span>
+                            <svg class="specs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+                        </summary>
+                        <div class="specs-body">
+                            <dl class="spec-list" id="modal-spec-list"></dl>
+                            <p class="lug-tip" id="modal-lug-tip"></p>
+                        </div>
+                    </details>
 
                     <div class="modal-actions">
                         <button class="icon-btn" id="modal-cart-btn" title="Add to Cart" aria-label="Add to Cart">
@@ -542,32 +691,43 @@
         }
 
         let toastTimer;
-        function showToast(message) {
+        function showToast(message, kind) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
+            toast.classList.toggle('success', kind === 'success');
             toast.classList.add('show');
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
         }
 
         // Adds the item, or raises its quantity if it is already in the bag.
-        function addProductToCart(id, name, price, imageUrl, category) {
+        // Returns true when the item was added, false when the stock limit blocked it.
+        function addProductToCart(id, name, price, imageUrl, category, stock, silent) {
+            const max = Number(stock);
+            const capped = stock !== undefined && stock !== '' && Number.isFinite(max);
             const cartItems = readCart();
             const existing = cartItems.find(item => String(item.id) === String(id));
+            const inBag = existing ? (existing.quantity || 1) : 0;
+
+            if (capped && inBag + 1 > max) {
+                if (!silent) showToast(max <= 0 ? name + ' is out of stock' : 'Only ' + max + ' left in stock');
+                return false;
+            }
+
             if (existing) {
-                existing.quantity = (existing.quantity || 1) + 1;
+                existing.quantity = inBag + 1;
             } else {
                 cartItems.push({ id: Number(id), name: name, price: parseFloat(price), image: imageUrl, category: category, quantity: 1 });
             }
             StefaCart.write(cartItems);
             updateCartCount(true);
-            showToast(name + ' added to your bag');
+            if (!silent) showToast(name + ' added to your bag');
+            return true;
         }
 
         function addFromCard(btn) {
             const d = btn.closest('.card').dataset;
-            addProductToCart(d.id, d.name, d.price, d.image, d.category);
-            flashAdded(btn);
+            if (addProductToCart(d.id, d.name, d.price, d.image, d.category, d.stock)) flashAdded(btn);
         }
 
         function flashAdded(btn) {
@@ -580,8 +740,9 @@
         }
 
         // Buy Now sends only this item to checkout (same key the cart page uses)
-        function buyNowProduct(id, name, price, imageUrl, category) {
-            addProductToCart(id, name, price, imageUrl, category);
+        function buyNowProduct(id, name, price, imageUrl, category, stock) {
+            // Silent: if the bag already holds the maximum, checkout still gets this one item
+            addProductToCart(id, name, price, imageUrl, category, stock, true);
             const item = { id: Number(id), name: name, price: parseFloat(price), image: imageUrl, category: category, quantity: 1, selected: true };
             localStorage.setItem('stefashop_checkout_items', JSON.stringify([item]));
             window.location.href = '/checkout';
@@ -589,7 +750,7 @@
 
         function buyFromCard(btn) {
             const d = btn.closest('.card').dataset;
-            buyNowProduct(d.id, d.name, d.price, d.image, d.category);
+            buyNowProduct(d.id, d.name, d.price, d.image, d.category, d.stock);
         }
 
         // ---------- Search, filters and sorting (all in the browser) ----------
@@ -602,18 +763,22 @@
             return filters.term !== '' || filters.quick || filters.lug.size || filters.leather.size || filters.color.size;
         }
 
-        function applyFilters() {
-            let visible = 0;
+        const PAGE_SIZE = 12;
+        let shown = PAGE_SIZE;
+        let lastVisible = [];
+
+        // keepPage = true keeps the current "Show more" count; any filter or sort change resets it
+        function applyFilters(keepPage) {
+            if (!keepPage) shown = PAGE_SIZE;
+
             cards.forEach(card => {
                 const d = card.dataset;
-                const ok =
+                card._match =
                     (!filters.term || d.name.toLowerCase().includes(filters.term)) &&
                     (!filters.lug.size || filters.lug.has(d.lug)) &&
-                    (!filters.leather.size || filters.leather.has((d.leather || '').toLowerCase())) &&
-                    (!filters.color.size || filters.color.has((d.color || '').toLowerCase())) &&
+                    (!filters.leather.size || [...filters.leather].some(v => (d.leather || '').toLowerCase().includes(v))) &&
+                    (!filters.color.size || [...filters.color].some(v => (d.color || '').toLowerCase().includes(v))) &&
                     (!filters.quick || d.quick === '1');
-                card.style.display = ok ? '' : 'none';
-                if (ok) visible++;
             });
 
             const sorted = cards.slice().sort((a, b) => {
@@ -621,12 +786,38 @@
                 if (filters.sort === 'high') return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
                 return Number(a.dataset.order) - Number(b.dataset.order);
             });
-            sorted.forEach(card => grid.insertBefore(card, emptyNote));
 
-            emptyNote.style.display = (cards.length && visible === 0) ? 'block' : 'none';
+            let matches = 0;
+            lastVisible = [];
+            sorted.forEach(card => {
+                const show = card._match && matches < shown;
+                if (card._match) matches++;
+                card.style.display = show ? '' : 'none';
+                if (show) lastVisible.push(card);
+                grid.insertBefore(card, emptyNote);
+            });
+
+            emptyNote.style.display = (cards.length && matches === 0) ? 'block' : 'none';
+
+            const active = anyFilterActive();
+            const noun = active
+                ? (matches === 1 ? 'matching product' : 'matching products')
+                : (matches === 1 ? 'product' : 'products');
             document.getElementById('result-count').textContent =
-                visible + (visible === 1 ? ' product' : ' products') + (anyFilterActive() ? ' match' : '');
-            document.getElementById('clear-filters').classList.toggle('show', anyFilterActive());
+                (matches > shown ? 'Showing ' + lastVisible.length + ' of ' + matches : matches) + ' ' + noun;
+
+            const remaining = matches - lastVisible.length;
+            const moreWrap = document.getElementById('load-more-wrap');
+            moreWrap.hidden = remaining <= 0;
+            document.getElementById('load-more-btn').textContent =
+                'Show more (' + remaining + ' remaining)';
+
+            const facetCount = filters.lug.size + filters.leather.size + filters.color.size + (filters.quick ? 1 : 0);
+            const badge = document.getElementById('filter-badge');
+            badge.textContent = facetCount;
+            badge.hidden = facetCount === 0;
+
+            document.getElementById('clear-filters').classList.toggle('show', active);
         }
 
         document.getElementById('product-search').addEventListener('input', function () {
@@ -649,35 +840,162 @@
                 applyFilters();
             });
         });
-        document.querySelectorAll('.check-list[data-group] input').forEach(box => {
-            box.addEventListener('change', function () {
-                const set = filters[this.closest('.check-list').dataset.group];
-                this.checked ? set.add(this.value) : set.delete(this.value);
+
+        // ---------- Searchable filters (Leather / Colour) ----------
+        const combos = [];
+
+        function initCombo(root) {
+            const set = filters[root.dataset.group];
+            let options = [];
+            try { options = JSON.parse(root.dataset.options); } catch (e) {}
+            const input = root.querySelector('.combo-input');
+            const list = root.querySelector('.combo-list');
+            const tags = root.querySelector('.combo-tags');
+            const labels = new Map();
+            let items = [], active = -1;
+
+            function renderTags() {
+                tags.innerHTML = '';
+                labels.forEach((label, val) => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'combo-tag';
+                    b.setAttribute('aria-label', 'Remove ' + label);
+                    b.append(label + ' ');
+                    const x = document.createElement('span');
+                    x.textContent = '×';
+                    b.appendChild(x);
+                    b.addEventListener('click', () => remove(val));
+                    tags.appendChild(b);
+                });
+            }
+
+            function add(label) {
+                label = label.trim();
+                const val = label.toLowerCase();
+                if (!val) return;
+                if (!set.has(val)) { set.add(val); labels.set(val, label); }
+                input.value = '';
+                close();
+                renderTags();
                 applyFilters();
+            }
+
+            function remove(val) {
+                set.delete(val);
+                labels.delete(val);
+                renderTags();
+                applyFilters();
+            }
+
+            function setActive(i) {
+                active = i;
+                list.querySelectorAll('li').forEach((li, idx) => li.classList.toggle('active', idx === i));
+                const el = list.children[i];
+                if (el) el.scrollIntoView({ block: 'nearest' });
+            }
+
+            function open() {
+                const q = input.value.trim().toLowerCase();
+                items = options
+                    .filter(o => !set.has(o.toLowerCase()) && o.toLowerCase().includes(q))
+                    .map(o => ({ label: o }));
+                if (q && !options.some(o => o.toLowerCase() === q) && !set.has(q)) {
+                    items.push({ label: input.value.trim(), custom: true });
+                }
+                list.innerHTML = '';
+                if (!items.length) {
+                    const li = document.createElement('li');
+                    li.className = 'none';
+                    li.textContent = 'No more options';
+                    list.appendChild(li);
+                }
+                items.forEach(it => {
+                    const li = document.createElement('li');
+                    li.setAttribute('role', 'option');
+                    li.textContent = it.custom ? 'Filter by “' + it.label + '”' : it.label;
+                    if (it.custom) li.classList.add('custom');
+                    li.addEventListener('mousedown', e => { e.preventDefault(); add(it.label); });
+                    list.appendChild(li);
+                });
+                active = -1;
+                list.classList.add('open');
+                input.setAttribute('aria-expanded', 'true');
+            }
+
+            function close() {
+                list.classList.remove('open');
+                input.setAttribute('aria-expanded', 'false');
+                active = -1;
+            }
+
+            input.addEventListener('focus', open);
+            input.addEventListener('input', open);
+            input.addEventListener('blur', close);
+            input.addEventListener('keydown', e => {
+                if (e.key === 'ArrowDown') { e.preventDefault(); if (!list.classList.contains('open')) open(); setActive(Math.min(active + 1, items.length - 1)); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(Math.max(active - 1, 0)); }
+                else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0 && items[active]) add(items[active].label); else if (input.value.trim()) add(input.value); }
+                else if (e.key === 'Escape') { close(); }
+                else if (e.key === 'Backspace' && !input.value && labels.size) { remove([...labels.keys()].pop()); }
             });
-        });
+
+            combos.push({ clear() { set.clear(); labels.clear(); input.value = ''; renderTags(); close(); } });
+        }
+
+        document.querySelectorAll('.combo').forEach(initCombo);
+
         document.getElementById('clear-filters').addEventListener('click', function () {
             filters.term = ''; filters.quick = false;
-            filters.lug.clear(); filters.leather.clear(); filters.color.clear();
+            filters.lug.clear();
+            combos.forEach(c => c.clear());
             document.getElementById('product-search').value = '';
             document.getElementById('quick-only').checked = false;
-            document.querySelectorAll('.check-list[data-group] input').forEach(b => { b.checked = false; });
             document.querySelectorAll('#lug-chips .chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
             applyFilters();
         });
 
-        // ---------- Modal reviews (saved through POST /api/reviews) ----------
+        // ---------- Modal reviews (POST, PUT and DELETE /api/reviews) ----------
         let currentModalReviews = [];
         let currentReviewRating = 0;
         let currentModalProductId = null;
         let currentModalCard = null;
+
+        const PENCIL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>';
+        const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6M14 11v6"></path></svg>';
+
+        function currentUserId() {
+            try { return Number(JSON.parse(localStorage.getItem('auth_user') || '{}').id) || null; } catch (e) { return null; }
+        }
+
+        // Keeps the card's data in step with edits and deletes, so reopening the popup shows the latest reviews
+        function syncCardReviews() {
+            if (currentModalCard) currentModalCard.dataset.reviews = JSON.stringify(currentModalReviews);
+        }
+
+        // Shows our own wording instead of raw server errors (missing route, server fault)
+        function reviewError(json, fallback, status) {
+            if (status === 404 || status === 405 || status >= 500) return fallback;
+            return (json.errors && Object.values(json.errors)[0][0]) || json.message || fallback;
+        }
+
+        function reviewHeaders() {
+            return {
+                'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            };
+        }
 
         function renderModalReviews(reviews) {
             const reviewsList = document.getElementById('modal-reviews-list');
             const starsEl = document.getElementById('modal-stars');
             const ratingText = document.getElementById('modal-rating-text');
             const reviewsHeading = document.getElementById('modal-reviews-heading');
+            const me = currentUserId();
             reviewsList.innerHTML = '';
+
+            // "Write a Review" stays available: each purchase can be reviewed once, and the server checks which purchases are still open
 
             if (reviews.length > 0) {
                 const avg = reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length;
@@ -698,6 +1016,32 @@
                     `;
                     item.querySelector('.review-author').innerText = r.author || 'Verified Buyer';
                     item.querySelector('p').innerText = r.comment || '';
+
+                    // Edit and Delete show only on the customer's own review
+                    if (me && r.id && Number(r.user_id) === me) {
+                        const actions = document.createElement('div');
+                        actions.className = 'review-own-actions';
+
+                        const editBtn = document.createElement('button');
+                        editBtn.type = 'button';
+                        editBtn.className = 'review-icon-btn';
+                        editBtn.innerHTML = PENCIL_ICON;
+                        editBtn.title = 'Edit review';
+                        editBtn.setAttribute('aria-label', 'Edit your review');
+                        editBtn.onclick = () => startReviewEdit(item, r);
+
+                        const delBtn = document.createElement('button');
+                        delBtn.type = 'button';
+                        delBtn.className = 'review-icon-btn danger';
+                        delBtn.innerHTML = TRASH_ICON;
+                        delBtn.title = 'Delete review';
+                        delBtn.setAttribute('aria-label', 'Delete your review');
+                        delBtn.onclick = () => deleteMyReview(r, delBtn);
+
+                        actions.appendChild(editBtn);
+                        actions.appendChild(delBtn);
+                        item.appendChild(actions);
+                    }
                     reviewsList.appendChild(item);
                 });
             } else {
@@ -705,6 +1049,103 @@
                 ratingText.innerText = 'No reviews yet';
                 reviewsHeading.innerText = 'Reviews';
                 reviewsList.innerHTML = '<div class="review-empty">No reviews yet for this product.</div>';
+            }
+        }
+
+        // Swap the review for an inline edit form
+        function startReviewEdit(item, r) {
+            let rating = Number(r.rating) || 0;
+            item.innerHTML = '';
+
+            const form = document.createElement('div');
+            form.className = 'review-edit-form';
+
+            const starRow = document.createElement('div');
+            starRow.className = 'star-input';
+            const starBtns = [1, 2, 3, 4, 5].map(v => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'star-btn';
+                b.textContent = '★';
+                b.onclick = () => { rating = v; paint(); };
+                starRow.appendChild(b);
+                return b;
+            });
+            function paint() { starBtns.forEach((b, i) => b.classList.toggle('filled', i < rating)); }
+            paint();
+
+            const text = document.createElement('textarea');
+            text.value = r.comment || '';
+
+            const row = document.createElement('div');
+            row.className = 'review-form-actions';
+
+            const cancel = document.createElement('button');
+            cancel.type = 'button';
+            cancel.className = 'review-cancel-btn';
+            cancel.textContent = 'Cancel';
+            cancel.onclick = () => renderModalReviews(currentModalReviews);
+
+            const save = document.createElement('button');
+            save.type = 'button';
+            save.className = 'review-submit-btn';
+            save.textContent = 'Save changes';
+            save.onclick = () => saveMyReview(r, rating, text.value.trim(), save);
+
+            row.appendChild(cancel);
+            row.appendChild(save);
+            form.appendChild(starRow);
+            form.appendChild(text);
+            form.appendChild(row);
+            item.appendChild(form);
+            text.focus();
+        }
+
+        async function saveMyReview(r, rating, comment, btn) {
+            if (!rating) { showToast('Please select a star rating first.'); return; }
+            if (!comment) { showToast('Please write a short comment.'); return; }
+
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/reviews/' + r.id, {
+                    method: 'PUT',
+                    headers: reviewHeaders(),
+                    body: JSON.stringify({ rating: rating, comment: comment })
+                });
+                if (res.status === 401) { showToast('Your session expired. Please log in again.'); return; }
+
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(reviewError(json, 'We couldn\'t update your review. Please try again.', res.status));
+
+                r.rating = rating;
+                r.comment = comment;
+                syncCardReviews();
+                renderModalReviews(currentModalReviews);
+                showToast('Review updated successfully', 'success');
+            } catch (err) {
+                btn.disabled = false;
+                showToast(err.message);
+            }
+        }
+
+        async function deleteMyReview(r, btn) {
+            if (!confirm('Delete your review? This cannot be undone.')) return;
+
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/reviews/' + r.id, { method: 'DELETE', headers: reviewHeaders() });
+                if (res.status === 401) { showToast('Your session expired. Please log in again.'); return; }
+
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(reviewError(json, 'We couldn\'t delete your review. Please try again.', res.status));
+
+                currentModalReviews = currentModalReviews.filter(x => x.id !== r.id);
+                syncCardReviews();
+                renderModalReviews(currentModalReviews);
+                showToast('Review deleted successfully', 'success');
+            } catch (err) {
+                btn.disabled = false;
+                showToast(err.message);
             }
         }
 
@@ -780,15 +1221,15 @@
                 const json = await res.json().catch(() => ({}));
                 if (!res.ok) {
                     const first = json.errors ? Object.values(json.errors)[0][0] : null;
-                    throw new Error(first || json.message || 'Could not submit your review.');
+                    throw new Error(res.status >= 500 ? 'We couldn\'t submit your review. Please try again.' : (first || json.message || 'We couldn\'t submit your review. Please try again.'));
                 }
 
                 const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
-                currentModalReviews.push({ author: user.name || 'You', rating: currentReviewRating, comment: comment });
-                if (currentModalCard) currentModalCard.dataset.reviews = JSON.stringify(currentModalReviews);
+                currentModalReviews.push({ id: json.data && json.data.id, user_id: user.id, author: user.name || 'You', rating: currentReviewRating, comment: comment });
+                syncCardReviews();
                 renderModalReviews(currentModalReviews);
                 toggleReviewForm(false);
-                showToast('Review submitted');
+                showToast('Review submitted successfully', 'success');
             } catch (err) {
                 showToast(err.message);
             } finally {
@@ -796,7 +1237,7 @@
             }
         }
 
-        // Specifications table and lug-width tip inside the product modal
+        // Specifications accordion and lug-width tip inside the product modal
         function renderSpecs(d) {
             const rows = [];
             if (d.lug) rows.push(['Lug width', d.lug + ' mm']);
@@ -818,7 +1259,14 @@
                 row.appendChild(dd);
                 list.appendChild(row);
             });
-            document.getElementById('modal-specs').classList.toggle('show', rows.length > 0);
+
+            const specs = document.getElementById('modal-specs');
+            specs.classList.toggle('show', rows.length > 0);
+
+            // Preview shown on the closed accordion row, e.g. "20 mm · Calfskin"
+            const peek = [d.lug && d.lug + ' mm', d.leather].filter(Boolean).join(' · ');
+            document.getElementById('modal-specs-peek').textContent = peek;
+            specs.open = false; // always start collapsed
 
             const tip = document.getElementById('modal-lug-tip');
             if (d.lug) {
@@ -830,7 +1278,19 @@
             }
         }
 
+        let lastFocus = null;
+
+        // Enter or Space on a focused card opens its details
+        function cardKey(e, card) {
+            if (e.target !== card) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openProductModal(card);
+            }
+        }
+
         function openProductModal(cardEl) {
+            lastFocus = document.activeElement;
             const id = cardEl.dataset.id;
             const name = cardEl.dataset.name;
             const price = cardEl.dataset.price;
@@ -847,11 +1307,11 @@
             renderSpecs(cardEl.dataset);
 
             const modalCartBtn = document.getElementById('modal-cart-btn');
+            const stock = cardEl.dataset.stock;
             modalCartBtn.onclick = function () {
-                addProductToCart(id, name, price, image, category);
-                flashAdded(modalCartBtn);
+                if (addProductToCart(id, name, price, image, category, stock)) flashAdded(modalCartBtn);
             };
-            document.getElementById('modal-buy-btn').onclick = function () { buyNowProduct(id, name, price, image, category); };
+            document.getElementById('modal-buy-btn').onclick = function () { buyNowProduct(id, name, price, image, category, stock); };
 
             // Sold-out products cannot be added or bought
             const soldOut = Number(cardEl.dataset.stock) <= 0;
@@ -869,18 +1329,85 @@
             renderModalReviews(currentModalReviews);
 
             document.getElementById('product-modal').classList.add('open');
+            document.querySelector('.modal-close').focus();
         }
 
         function closeProductModal() {
-            document.getElementById('product-modal').classList.remove('open');
+            const modal = document.getElementById('product-modal');
+            if (!modal.classList.contains('open')) return;
+            modal.classList.remove('open');
+            if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+            lastFocus = null;
         }
 
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeProductModal();
+            const modal = document.getElementById('product-modal');
+            if (!modal.classList.contains('open')) return;
+
+            if (e.key === 'Escape') {
+                closeProductModal();
+                return;
+            }
+
+            // Keep Tab inside the dialog while it is open
+            if (e.key === 'Tab') {
+                const focusable = Array.from(modal.querySelectorAll('button, input, textarea, summary'))
+                    .filter(el => !el.disabled && el.offsetParent !== null);
+                if (!focusable.length) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        });
+
+        // Mobile: open and close the filters panel
+        const filterToggle = document.getElementById('filter-toggle');
+        const filtersPanel = document.getElementById('filters-panel');
+        filterToggle.addEventListener('click', function () {
+            const open = filtersPanel.classList.toggle('open');
+            filterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+
+        // Show the next page of products and move focus to the first new one
+        document.getElementById('load-more-btn').addEventListener('click', function () {
+            const before = lastVisible.length;
+            shown += PAGE_SIZE;
+            applyFilters(true);
+            const firstNew = lastVisible[before];
+            if (firstNew) firstNew.focus();
         });
 
         updateCartCount(false);
         applyFilters();
+
+        // ---------- Demo: show the middle card in its fully hovered state ----------
+        // Open /shop?hover-demo to see the second card enlarged with a cursor arrow on it,
+        // for example to take a screenshot. Moving the mouse onto any card clears the demo.
+        (function () {
+            if (!new URLSearchParams(location.search).has('hover-demo')) return;
+            const target = lastVisible[1] || lastVisible[0];
+            if (!target) return;
+
+            const cursor = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            cursor.setAttribute('class', 'demo-cursor');
+            cursor.setAttribute('viewBox', '0 0 24 24');
+            cursor.setAttribute('aria-hidden', 'true');
+            cursor.innerHTML = '<path d="M4 2l15 9.5-6.6 1.5 3.9 7.4-3 1.6-3.9-7.5L4 19.5z" fill="#2B1B0C" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"></path>';
+            target.appendChild(cursor);
+            target.classList.add('demo-hover');
+
+            cards.forEach(c => c.addEventListener('mouseenter', () => {
+                target.classList.remove('demo-hover');
+                cursor.remove();
+            }, { once: true }));
+        })();
+
     </script>
 
 </body>
