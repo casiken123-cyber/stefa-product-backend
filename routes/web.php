@@ -27,6 +27,8 @@ Route::get('/shop', function (\Illuminate\Http\Request $request) {
 
 Route::view('/login', 'login')->name('login');
 Route::redirect('/register', '/login');
+Route::view('/forgot-password', 'forgot-password');
+Route::view('/reset-password', 'reset-password');
 
 // Unlocked layout gates for frontend workflow simulation
 Route::view('/cart', 'cart');

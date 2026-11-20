@@ -144,15 +144,99 @@
         h1 { font-size: 28px; line-height: 36px; font-weight: 600; margin: 0 0 6px 0; letter-spacing: -0.01em; color: var(--brown); }
         .sub-heading { font-size: 14px; color: var(--ink-soft); margin: 0 0 24px 0; max-width: 70ch; }
 
-        /* ---------- Stats ---------- */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 32px; }
-        .stat-card { background: var(--panel); padding: 22px; border-radius: var(--radius-lg); border: 1px solid var(--line); }
-        .stat-card p { margin: 0; color: var(--ink-soft); font-size: 13px; font-weight: 500; }
-        .stat-card h3 { margin: 10px 0 0 0; font-size: 26px; font-weight: 600; color: var(--ink); font-family: 'IBM Plex Mono', monospace; }
+        /* ---------- KPI stat cards ----------
+           Every card uses the same 4-slot layout so heights, icon size,
+           label position and number baseline match across all cards:
+             1. top row    : icon badge (left) + trend / status chip (right)
+             2. label      : one line, never wraps
+             3. value      : large monospaced number
+             4. footer     : time range or short context
+        */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: 32px; }
+        .stat-card {
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            row-gap: 4px;
+            min-height: 176px;
+            padding: 18px 20px 16px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 16px 30px -18px rgba(43, 27, 12, 0.4); }
+
+        .stat-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; }
+        .stat-ico { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--gold-tint); color: var(--brown); }
+        .stat-ico svg { width: 20px; height: 20px; }
+
+        .stat-label {
+            margin: 10px 0 0;
+            font-size: 13px;
+            line-height: 18px;
+            font-weight: 500;
+            color: var(--ink-soft);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .stat-value {
+            align-self: center;
+            margin: 0;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 30px;
+            line-height: 40px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--ink);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .stat-foot {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 28px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--line);
+            font-size: 12px;
+            line-height: 16px;
+            font-weight: 500;
+            color: var(--ink-faint);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Trend / status chips */
+        .stat-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            height: 24px;
+            padding: 0 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            background: var(--cloud);
+            color: var(--ink-soft);
+        }
+        .stat-chip svg { width: 11px; height: 11px; }
+        .stat-chip.up { background: var(--success-soft); color: var(--success); }
+        .stat-chip.down { background: var(--danger-soft); color: var(--danger); }
+        .stat-chip.warn { background: var(--warn-soft); color: var(--warn); }
+        .stat-chip.info { background: var(--info-soft); color: var(--info); }
+
         /* The first card (sales) is the one to look at */
         .stats-grid .stat-card:first-child { background: var(--brown); border-color: var(--brown); }
-        .stats-grid .stat-card:first-child p { color: #E5D2A8; }
-        .stats-grid .stat-card:first-child h3 { color: var(--gold); }
+        .stats-grid .stat-card:first-child .stat-label { color: #E5D2A8; }
+        .stats-grid .stat-card:first-child .stat-value { color: var(--gold); }
+        .stats-grid .stat-card:first-child .stat-ico { background: rgba(255, 195, 77, 0.18); color: var(--gold); }
+        .stats-grid .stat-card:first-child .stat-foot { border-top-color: rgba(241, 217, 168, 0.28); color: #CDB78C; }
+        .stats-grid .stat-card:first-child .stat-chip { background: rgba(241, 217, 168, 0.16); color: var(--pale); }
+        .stats-grid .stat-card:first-child .stat-chip.up { background: rgba(120, 209, 150, 0.2); color: #A8E6BD; }
+        .stats-grid .stat-card:first-child .stat-chip.down { background: rgba(255, 138, 124, 0.2); color: #FFC1B8; }
 
         /* ---------- Tables (scroll sideways when wider than the panel) ---------- */
         .table-card { background: var(--panel); border-radius: var(--radius-lg); border: 1px solid var(--line); overflow-x: auto; }
@@ -352,9 +436,40 @@
             caret-color: var(--ink);
         }
 
+        /* ---------- Dashboard polish ---------- */
+        .hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 24px; }
+        .hero h1 { margin: 0 0 4px; }
+        .hero .sub-heading { margin: 0; }
+        .hero-date { font-size: 13px; font-weight: 500; color: var(--ink-soft); white-space: nowrap; }
+        .dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 18px; }
+        .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px; min-width: 0; }
+        .panel h2 { font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+        .panel-sub { margin: 0; font-size: 13px; color: var(--ink-soft); }
+        .bars { display: flex; align-items: stretch; gap: 8px; height: 200px; margin-top: 18px; padding-bottom: 2px; border-bottom: 1px solid var(--line); }
+        .bar-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+        .bar-val { height: 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-soft); white-space: nowrap; }
+        .bar-track { flex: 1; width: 100%; position: relative; }
+        .bar { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 40px; height: 0; border-radius: 8px 8px 2px 2px; background: var(--pale); transition: height 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .bar.today { background: var(--gold); }
+        .bar-col:hover .bar { background: var(--gold-deep); }
+        .bar-days { display: flex; gap: 8px; margin-top: 8px; }
+        .bar-days span { flex: 1; text-align: center; font-size: 11px; color: var(--ink-faint); }
+        .st-row { margin-top: 16px; }
+        .st-head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; margin-bottom: 6px; color: var(--ink-soft); font-weight: 500; }
+        .st-head strong { color: var(--ink); font-family: 'IBM Plex Mono', monospace; }
+        .st-track { height: 8px; border-radius: 4px; background: var(--cloud); overflow: hidden; }
+        .st-fill { height: 100%; width: 0; border-radius: 4px; transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .st-fill.pending { background: var(--gold-deep); }
+        .st-fill.processing { background: var(--brown); }
+        .st-fill.completed { background: var(--success); }
+        .st-fill.cancelled { background: var(--danger); }
+        .panel .table-card { border: none; border-radius: 0; margin-top: 12px; }
+        .panel .table-note { padding: 20px; }
+        @media (max-width: 1100px) { .dash-grid { grid-template-columns: 1fr; } }
+
         /* ---------- Smaller screens ---------- */
         @media (max-width: 1100px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
         @media (max-width: 820px) {
             body { flex-direction: column; height: auto; min-height: 100vh; overflow: auto; }
@@ -363,9 +478,15 @@
             header { padding: 14px 20px; position: static; }
             .workspace-view-panel { padding: 24px 20px; }
             .field-row { grid-template-columns: 1fr; }
+            .hero { flex-direction: column; align-items: flex-start; }
+        }
+        @media (max-width: 560px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .stat-card { min-height: 164px; }
         }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+            .stat-card:hover { transform: none; }
         }
     </style>
 </head>
@@ -403,16 +524,77 @@
             <a href="/login" id="exit-link">Exit Control Terminal →</a>
         </header>
 
-        <!-- PANEL SECTION 1: MASTER REVENUE ANALYTICS DASHBOARD -->
+        <!-- PANEL SECTION 1: DASHBOARD -->
         <section id="tab-dashboard" class="workspace-view-panel active">
-            <h1>Control Panel Dashboard</h1>
-            <p class="sub-heading">Real-time system transaction tracking and configuration counters logs.</p>
+            <div class="hero">
+                <div>
+                    <h1 id="hello">Control Panel Dashboard</h1>
+                    <p class="sub-heading">Here is how STEFA is doing today.</p>
+                </div>
+                <span class="hero-date" id="hero-date"></span>
+            </div>
 
             <div class="stats-grid">
-                <div class="stat-card"><p>Gross Marketplace Sales</p><h3 id="stat-sales">...</h3></div>
-                <div class="stat-card"><p>Active Users</p><h3 id="stat-users">...</h3></div>
-                <div class="stat-card"><p>Fulfillment Order Traffic</p><h3 id="stat-orders">...</h3></div>
-                <div class="stat-card"><p>Stock Warning Low Units</p><h3 id="stat-low" style="color: var(--danger);">...</h3></div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M14.5 9a2.5 2 0 0 0-2.5-1.5c-1.4 0-2.5.7-2.5 2s1 1.7 2.5 2 2.5.7 2.5 2-1.1 2-2.5 2A2.5 2 0 0 1 9.5 15M12 6.5v1.5M12 16v1.5"></path></svg></span>
+                        <span class="stat-chip" id="stat-sales-chip">&mdash;</span>
+                    </div>
+                    <p class="stat-label" title="Gross Marketplace Sales">Gross Marketplace Sales</p>
+                    <h3 class="stat-value" id="stat-sales">...</h3>
+                    <div class="stat-foot" id="stat-sales-foot">All time &middot; excludes cancelled</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .7 3.5 2.6 3.5 5.5"></path></svg></span>
+                        <span class="stat-chip info" id="stat-users-chip">Customers</span>
+                    </div>
+                    <p class="stat-label" title="Active Users">Active Users</p>
+                    <h3 class="stat-value" id="stat-users">...</h3>
+                    <div class="stat-foot" id="stat-users-foot">Registered accounts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8zM9 8V6a3 3 0 0 1 6 0v2"></path></svg></span>
+                        <span class="stat-chip" id="stat-orders-chip">&mdash;</span>
+                    </div>
+                    <p class="stat-label" title="Fulfillment Order Traffic">Fulfillment Order Traffic</p>
+                    <h3 class="stat-value" id="stat-orders">...</h3>
+                    <div class="stat-foot" id="stat-orders-foot">All orders to date</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 16H3L12 3zM12 10v4M12 17h.01"></path></svg></span>
+                        <span class="stat-chip" id="stat-low-chip">&mdash;</span>
+                    </div>
+                    <p class="stat-label" title="Stock Warning Low Units">Stock Warning Low Units</p>
+                    <h3 class="stat-value" id="stat-low">...</h3>
+                    <div class="stat-foot" id="stat-low-foot">Flagged at 5 units or fewer</div>
+                </div>
+            </div>
+
+            <div class="dash-grid">
+                <div class="panel">
+                    <h2>Sales, last 7 days</h2>
+                    <p class="panel-sub">Cancelled orders are not counted.</p>
+                    <div class="bars" id="dash-bars"></div>
+                    <div class="bar-days" id="dash-bars-days"></div>
+                </div>
+                <div class="panel">
+                    <h2>Orders by status</h2>
+                    <p class="panel-sub">All orders to date.</p>
+                    <div id="dash-status"></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Recent orders</h2>
+                <div class="table-card">
+                    <table>
+                        <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Placed</th></tr></thead>
+                        <tbody id="dash-recent"><tr><td colspan="5" class="table-note">Loading orders...</td></tr></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -503,15 +685,61 @@
             </div>
         </section>
 
-        <!-- PANEL SECTION 8: SALES REPORT (from the dashboard numbers) -->
+        <!-- PANEL SECTION 8: SALES REPORT -->
         <section id="tab-reports" class="workspace-view-panel">
             <h1>Sales Report</h1>
             <p class="sub-heading">Summary built from live order and catalog data. Cancelled orders are not counted in sales.</p>
             <div class="stats-grid">
-                <div class="stat-card"><p>Gross Sales</p><h3 id="rep-sales">...</h3></div>
-                <div class="stat-card"><p>Total Orders</p><h3 id="rep-orders">...</h3></div>
-                <div class="stat-card"><p>Average Order Value</p><h3 id="rep-avg">...</h3></div>
-                <div class="stat-card"><p>Products In Catalog</p><h3 id="rep-products">...</h3></div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M14.5 9a2.5 2 0 0 0-2.5-1.5c-1.4 0-2.5.7-2.5 2s1 1.7 2.5 2 2.5.7 2.5 2-1.1 2-2.5 2A2.5 2 0 0 1 9.5 15M12 6.5v1.5M12 16v1.5"></path></svg></span>
+                        <span class="stat-chip" id="rep-sales-chip">&mdash;</span>
+                    </div>
+                    <p class="stat-label" title="Gross Sales">Gross Sales</p>
+                    <h3 class="stat-value" id="rep-sales">...</h3>
+                    <div class="stat-foot" id="rep-sales-foot">All time &middot; excludes cancelled</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8zM9 8V6a3 3 0 0 1 6 0v2"></path></svg></span>
+                        <span class="stat-chip" id="rep-orders-chip">&mdash;</span>
+                    </div>
+                    <p class="stat-label" title="Total Orders">Total Orders</p>
+                    <h3 class="stat-value" id="rep-orders">...</h3>
+                    <div class="stat-foot" id="rep-orders-foot">All orders to date</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"></path></svg></span>
+                        <span class="stat-chip" id="rep-avg-chip">&mdash;</span>
+                    </div>
+                    <p class="stat-label" title="Average Order Value">Average Order Value</p>
+                    <h3 class="stat-value" id="rep-avg">...</h3>
+                    <div class="stat-foot" id="rep-avg-foot">Sales divided by orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M4 10h16M10 10v10"></path></svg></span>
+                        <span class="stat-chip info" id="rep-products-chip">Live</span>
+                    </div>
+                    <p class="stat-label" title="Products In Catalog">Products In Catalog</p>
+                    <h3 class="stat-value" id="rep-products">...</h3>
+                    <div class="stat-foot" id="rep-products-foot">Items currently in the store</div>
+                </div>
+            </div>
+
+            <div class="dash-grid">
+                <div class="panel">
+                    <h2>Sales, last 14 days</h2>
+                    <p class="panel-sub">Daily revenue from non-cancelled orders.</p>
+                    <div class="bars" id="rep-bars"></div>
+                    <div class="bar-days" id="rep-bars-days"></div>
+                </div>
+                <div class="panel">
+                    <h2>Best sellers</h2>
+                    <p class="panel-sub">Units sold, top 5 products.</p>
+                    <div id="rep-top"></div>
+                </div>
             </div>
         </section>
     </main>
@@ -918,19 +1146,70 @@
             if (name === 'reviews') loadReviews();
         }
 
+        // ---------- KPI card helpers ----------
+        const ARROW_UP = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 10V2M2.5 5.5L6 2l3.5 3.5"></path></svg>';
+        const ARROW_DOWN = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v8M2.5 6.5L6 10l3.5-3.5"></path></svg>';
+
+        // Fill the chip (top right) and footer (bottom) of a KPI card
+        function setMeta(id, chipHtml, chipClass, footText) {
+            const chip = document.getElementById(id + '-chip');
+            if (chip && chipHtml != null) {
+                chip.className = 'stat-chip' + (chipClass ? ' ' + chipClass : '');
+                chip.innerHTML = chipHtml;
+            }
+            const foot = document.getElementById(id + '-foot');
+            if (foot && footText != null) {
+                foot.textContent = footText;
+                foot.title = footText;
+            }
+        }
+
+        // Compare a number with the same-sized period before it
+        function trendChip(cur, prev) {
+            if (!prev && !cur) return { html: '0%', cls: '' };
+            if (!prev) return { html: ARROW_UP + 'New', cls: 'up' };
+            const pct = Math.round((cur - prev) / prev * 100);
+            if (pct === 0) return { html: '0%', cls: '' };
+            return pct > 0
+                ? { html: ARROW_UP + pct + '%', cls: 'up' }
+                : { html: ARROW_DOWN + Math.abs(pct) + '%', cls: 'down' };
+        }
+
+        // Sales total and order count for n days, ending `offset` days before today
+        function windowStats(orders, n, offset) {
+            const end = new Date();
+            end.setHours(0, 0, 0, 0);
+            end.setDate(end.getDate() - offset + 1);
+            const start = new Date(end);
+            start.setDate(start.getDate() - n);
+            let sales = 0;
+            let count = 0;
+            orders.forEach(o => {
+                if (o.status === 'cancelled') return;
+                const t = new Date(o.created_at);
+                if (t >= start && t < end) { sales += Number(o.total) || 0; count++; }
+            });
+            return { sales: sales, count: count };
+        }
+
         // ---------- Dashboard and sales report (GET /api/admin/stats) ----------
         async function loadStats() {
             try {
                 const s = await api('/api/admin/stats');
-                document.getElementById('stat-sales').textContent = money(s.sales);
-                document.getElementById('stat-users').textContent = s.users;
-                document.getElementById('stat-orders').textContent = s.orders;
-                document.getElementById('stat-low').textContent = s.low_stock + ' Items';
 
-                document.getElementById('rep-sales').textContent = money(s.sales);
-                document.getElementById('rep-orders').textContent = s.orders;
-                document.getElementById('rep-avg').textContent = money(s.orders ? s.sales / s.orders : 0);
-                document.getElementById('rep-products').textContent = s.products;
+                countUp('stat-sales', s.sales, money);
+                countUp('stat-users', s.users);
+                countUp('stat-orders', s.orders);
+                countUp('stat-low', s.low_stock, v => Math.round(v) + (Math.round(v) === 1 ? ' Item' : ' Items'));
+                if (s.low_stock > 0) setMeta('stat-low', 'Restock soon', 'warn');
+                else setMeta('stat-low', 'All stocked', 'up');
+
+                countUp('rep-sales', s.sales, money);
+                countUp('rep-orders', s.orders);
+                countUp('rep-avg', s.orders ? s.sales / s.orders : 0, money);
+                countUp('rep-products', s.products);
+
+                loadInsights();
 
                 // The API accepted this account as an admin, so the page can be shown
                 document.body.classList.remove('locked');
@@ -1816,6 +2095,152 @@
             ['stefashop_cart', 'stefashop_checkout_items', 'stefashop_profile', 'stefashop_orders']
                 .forEach(key => localStorage.removeItem(key));
         });
+
+        // ---------- Dashboard visuals ----------
+        (function () {
+            const h = new Date().getHours();
+            const hello = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+            document.getElementById('hello').textContent = hello + (adminUser.name ? ', ' + adminUser.name : '');
+            document.getElementById('hero-date').textContent =
+                new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        })();
+
+        // Numbers count up from zero when the dashboard loads
+        function countUp(id, to, fmt) {
+            const el = document.getElementById(id);
+            const end = Number(to) || 0;
+            const show = v => { el.textContent = fmt ? fmt(v) : Math.round(v); };
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) { show(end); return; }
+            const start = performance.now();
+            (function tick(now) {
+                const p = Math.min(1, (now - start) / 700);
+                show(end * (1 - Math.pow(1 - p, 3)));
+                if (p < 1) requestAnimationFrame(tick);
+            })(start);
+        }
+
+        // Daily sales totals for the last n days (cancelled orders are skipped)
+        function lastDays(orders, n) {
+            const days = [];
+            for (let i = n - 1; i >= 0; i--) {
+                const d = new Date();
+                d.setHours(0, 0, 0, 0);
+                d.setDate(d.getDate() - i);
+                days.push({ date: d, key: d.toDateString(), value: 0 });
+            }
+            orders.forEach(o => {
+                if (o.status === 'cancelled') return;
+                const day = days.find(x => x.key === new Date(o.created_at).toDateString());
+                if (day) day.value += Number(o.total) || 0;
+            });
+            return days;
+        }
+
+        function drawBars(id, days) {
+            const el = document.getElementById(id);
+            const max = Math.max(...days.map(d => d.value), 1);
+            el.innerHTML = days.map((d, i) =>
+                '<div class="bar-col" title="' + esc(d.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ': ' + money(d.value)) + '">' +
+                    '<span class="bar-val">' + (d.value && days.length <= 8 ? '$' + Math.round(d.value) : '') + '</span>' +
+                    '<div class="bar-track"><div class="bar' + (i === days.length - 1 ? ' today' : '') + '" data-h="' + Math.max(3, Math.round(d.value / max * 100)) + '"></div></div>' +
+                '</div>'
+            ).join('');
+            document.getElementById(id + '-days').innerHTML = days.map((d, i) =>
+                '<span>' + (days.length > 8
+                    ? (i % 2 ? '' : d.date.getDate())
+                    : d.date.toLocaleDateString('en-US', { weekday: 'short' })) + '</span>'
+            ).join('');
+            requestAnimationFrame(() => requestAnimationFrame(() =>
+                el.querySelectorAll('.bar').forEach(b => { b.style.height = b.dataset.h + '%'; })));
+        }
+
+        function drawStatus(orders) {
+            const counts = { pending: 0, processing: 0, completed: 0, cancelled: 0 };
+            orders.forEach(o => { if (counts[o.status] !== undefined) counts[o.status]++; });
+            const total = orders.length || 1;
+            const el = document.getElementById('dash-status');
+            el.innerHTML = Object.keys(counts).map(k =>
+                '<div class="st-row"><div class="st-head"><span>' + k.charAt(0).toUpperCase() + k.slice(1) + '</span><strong>' + counts[k] + '</strong></div>' +
+                '<div class="st-track"><div class="st-fill ' + k + '" data-w="' + Math.round(counts[k] / total * 100) + '"></div></div></div>'
+            ).join('');
+            requestAnimationFrame(() => requestAnimationFrame(() =>
+                el.querySelectorAll('.st-fill').forEach(f => { f.style.width = f.dataset.w + '%'; })));
+        }
+
+        function drawRecent(orders) {
+            const BADGE = { pending: 'orange', processing: 'blue', completed: 'green', cancelled: 'red' };
+            const latest = orders.slice()
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at) || b.id - a.id)
+                .slice(0, 5);
+            document.getElementById('dash-recent').innerHTML = latest.length
+                ? latest.map(o =>
+                    '<tr><td class="money">#STF-' + pad(o.id, 5) + '</td>' +
+                    '<td><strong>' + esc(o.customer ? o.customer.name : 'Unknown') + '</strong></td>' +
+                    '<td class="money">' + money(o.total) + '</td>' +
+                    '<td><span class="badge ' + (BADGE[o.status] || '') + '">' + esc(o.status) + '</span></td>' +
+                    '<td>' + esc(formatDate(o.created_at)) + '</td></tr>').join('')
+                : '<tr><td colspan="5" class="table-note">No orders yet.</td></tr>';
+        }
+
+        function drawTop(orders) {
+            const sold = {};
+            orders.forEach(o => {
+                if (o.status === 'cancelled') return;
+                (o.items || []).forEach(it => {
+                    const key = it.name || 'Item';
+                    sold[key] = (sold[key] || 0) + Number(it.quantity || 1);
+                });
+            });
+            const top = Object.entries(sold).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const max = top.length ? top[0][1] : 1;
+            const el = document.getElementById('rep-top');
+            el.innerHTML = top.length
+                ? top.map(t =>
+                    '<div class="st-row"><div class="st-head"><span>' + esc(t[0]) + '</span><strong>' + t[1] + '</strong></div>' +
+                    '<div class="st-track"><div class="st-fill processing" data-w="' + Math.round(t[1] / max * 100) + '"></div></div></div>').join('')
+                : '<p class="panel-sub" style="margin-top: 16px;">No sales yet.</p>';
+            requestAnimationFrame(() => requestAnimationFrame(() =>
+                el.querySelectorAll('.st-fill').forEach(f => { f.style.width = f.dataset.w + '%'; })));
+        }
+
+        // Trend chips and footers on the KPI cards, built from the orders list
+        function drawKpiMeta(orders) {
+            // Dashboard: last 7 days against the 7 days before
+            const w7 = windowStats(orders, 7, 0);
+            const p7 = windowStats(orders, 7, 7);
+            const salesTrend = trendChip(w7.sales, p7.sales);
+            setMeta('stat-sales', salesTrend.html, salesTrend.cls, 'Last 7 days: ' + money(w7.sales));
+            const ordersTrend = trendChip(w7.count, p7.count);
+            const pending = orders.filter(o => o.status === 'pending').length;
+            const processing = orders.filter(o => o.status === 'processing').length;
+            setMeta('stat-orders', ordersTrend.html, ordersTrend.cls, pending + ' pending \u00B7 ' + processing + ' processing');
+
+            // Sales report: last 14 days against the 14 days before
+            const w14 = windowStats(orders, 14, 0);
+            const p14 = windowStats(orders, 14, 14);
+            const repSales = trendChip(w14.sales, p14.sales);
+            setMeta('rep-sales', repSales.html, repSales.cls, 'Last 14 days: ' + money(w14.sales));
+            const repOrders = trendChip(w14.count, p14.count);
+            setMeta('rep-orders', repOrders.html, repOrders.cls, 'Last 14 days: ' + w14.count + (w14.count === 1 ? ' order' : ' orders'));
+            const avgNow = w14.count ? w14.sales / w14.count : 0;
+            const avgPrev = p14.count ? p14.sales / p14.count : 0;
+            const repAvg = trendChip(avgNow, avgPrev);
+            setMeta('rep-avg', repAvg.html, repAvg.cls, 'Last 14 days: ' + money(avgNow));
+        }
+
+        // Charts and lists are built from the orders list; the stat cards still work without it
+        async function loadInsights() {
+            try {
+                const json = await api('/api/admin/orders');
+                const orders = json.data || [];
+                drawBars('dash-bars', lastDays(orders, 7));
+                drawBars('rep-bars', lastDays(orders, 14));
+                drawStatus(orders);
+                drawRecent(orders);
+                drawTop(orders);
+                drawKpiMeta(orders);
+            } catch (err) { /* ignore: AUTH is handled in api(), other errors only affect the charts */ }
+        }
 
         // ---------- First load ----------
         loadStats();
