@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -36,6 +37,7 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'category' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            ...$this->strapRules(),
         ]);
 
         $validated['slug'] = $this->uniqueSlug($validated['name']);
@@ -64,6 +66,7 @@ class ProductController extends Controller
             'stock' => 'sometimes|required|integer|min:0',
             'category' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            ...$this->strapRules(),
         ]);
 
         if (isset($validated['name'])) {
@@ -82,12 +85,41 @@ class ProductController extends Controller
         return new ProductResource($product);
     }
 
+    // A product that appears in any order cannot be deleted, so old orders and the
+    // sales history keep their items. Set its stock to 0 to stop selling it instead.
     public function destroy(Product $product)
     {
-        $this->deleteLocalImage($product->image_url);
-        $product->delete();
+        $imageUrl = DB::transaction(function () use ($product) {
+            // Lock the product row, so an order being placed at this moment
+            // cannot slip in between the check and the delete
+            $locked = Product::whereKey($product->id)->lockForUpdate()->firstOrFail();
+
+            if ($locked->orderItems()->exists()) {
+                abort(422, 'This product is part of existing orders and cannot be deleted. Set its stock to 0 to stop selling it.');
+            }
+
+            $locked->delete();
+
+            return $locked->image_url;
+        });
+
+        // Only remove the picture once the product is really gone
+        $this->deleteLocalImage($imageUrl);
 
         return response()->json(['message' => 'Product deleted']);
+    }
+
+    // Validation for the watch strap details, shared by store() and update()
+    private function strapRules(): array
+    {
+        return [
+            'lug_width' => 'nullable|integer|min:6|max:40',
+            'leather_type' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:50',
+            'buckle' => 'nullable|string|max:50',
+            'length' => 'nullable|string|max:20',
+            'quick_release' => 'nullable|boolean',
+        ];
     }
 
     private function uniqueSlug(string $name, ?int $ignoreId = null): string

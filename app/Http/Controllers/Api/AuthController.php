@@ -69,31 +69,6 @@ class AuthController extends Controller
         ], 200);
     }
 
-    // Kept for the earlier admin-only login. It returns the same safe fields.
-    public function adminLogin(Request $request)
-    {
-        $fields = $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-
-        $admin = Admin::where('email', $fields['email'])->first();
-
-        if (! $admin || ! Hash::check($fields['password'], $admin->password)) {
-            return response()->json([
-                'message' => 'The provided credentials are incorrect.',
-            ], 401);
-        }
-
-        $safe = self::safeAccount($admin);
-
-        return response()->json([
-            'admin' => $safe,
-            'user' => $safe,
-            'token' => $admin->createToken('admintoken')->plainTextToken,
-        ], 200);
-    }
-
     public function logout(Request $request)
     {
         // Revoke only the token used for this request.
