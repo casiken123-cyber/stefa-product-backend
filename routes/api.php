@@ -52,6 +52,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/notices', [NoticeController::class, 'index']);
         Route::post('/notices/read', [NoticeController::class, 'readAll']);
+        Route::delete('/notices/{notice}', [NoticeController::class, 'destroy']);
+        Route::delete('/notices', [NoticeController::class, 'clear']);
     });
 
     // Admin-only (a signed-in non-admin gets 403)

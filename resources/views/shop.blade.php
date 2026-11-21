@@ -246,6 +246,13 @@
         .buy-btn:disabled, .icon-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
         .empty-state { color: var(--ink-soft); font-size: 14px; padding: 24px 0; grid-column: 1 / -1; }
 
+        /* Star rating on each product card */
+        .card-rating { display: flex; align-items: center; gap: 8px; margin: -2px 0 0; font-size: 13px; color: var(--ink-soft); }
+        .card-stars { color: #C98A00; font-size: 14px; letter-spacing: 1px; }
+        .card-rating-text { font-weight: 500; }
+        .card-rating.empty .card-stars { color: var(--line); }
+        .card-rating.empty .card-rating-text { color: var(--ink-faint); }
+
         /* Cursor arrow drawn over the card in the demo hover state (add ?hover-demo to the URL) */
         .demo-cursor { position: absolute; z-index: 6; right: 34%; top: 38%; width: 34px; height: 34px; pointer-events: none; filter: drop-shadow(0 3px 5px rgba(43, 27, 12, 0.45)); display: none; }
         .card.demo-hover .demo-cursor { display: block; }
@@ -513,6 +520,16 @@
                         <div class="card-body">
                             <h3>{{ $product->name }}</h3>
                             <span class="tag">{{ $product->category }}</span>
+                            @php
+                                $cardReviews = isset($product->reviews) ? $product->reviews : collect();
+                                $cardCount = $cardReviews->count();
+                                $cardAvg = $cardCount ? round($cardReviews->avg('rating'), 1) : 0;
+                                $cardFilled = (int) round($cardAvg);
+                            @endphp
+                            <div class="card-rating {{ $cardCount ? '' : 'empty' }}">
+                                <span class="card-stars" aria-hidden="true">@if($cardCount) {{ str_repeat('★', $cardFilled) }}{{ str_repeat('☆', 5 - $cardFilled) }} @else ☆☆☆☆☆ @endif</span>
+                                <span class="card-rating-text">@if($cardCount) {{ number_format($cardAvg, 1) }} ({{ $cardCount }}) @else No reviews yet @endif</span>
+                            </div>
                             @if($product->lug_width || $product->color)
                                 <p class="spec-line">
                                     @if($product->lug_width)<span class="lug-pill">{{ $product->lug_width }} mm</span>@endif
@@ -968,9 +985,23 @@
             try { return Number(JSON.parse(localStorage.getItem('auth_user') || '{}').id) || null; } catch (e) { return null; }
         }
 
-        // Keeps the card's data in step with edits and deletes, so reopening the popup shows the latest reviews
+        // Updates the stars and count shown on the product card
+        function renderCardRating(card, reviews) {
+            const box = card && card.querySelector('.card-rating');
+            if (!box) return;
+            const n = reviews.length;
+            const avg = n ? reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / n : 0;
+            const filled = Math.round(avg);
+            box.querySelector('.card-stars').textContent = n ? '★'.repeat(filled) + '☆'.repeat(5 - filled) : '☆☆☆☆☆';
+            box.querySelector('.card-rating-text').textContent = n ? avg.toFixed(1) + ' (' + n + ')' : 'No reviews yet';
+            box.classList.toggle('empty', !n);
+        }
+
+        // Keeps the card's data in step with edits and deletes, so reopening the popup and the card rating show the latest reviews
         function syncCardReviews() {
-            if (currentModalCard) currentModalCard.dataset.reviews = JSON.stringify(currentModalReviews);
+            if (!currentModalCard) return;
+            currentModalCard.dataset.reviews = JSON.stringify(currentModalReviews);
+            renderCardRating(currentModalCard, currentModalReviews);
         }
 
         // Shows our own wording instead of raw server errors (missing route, server fault)

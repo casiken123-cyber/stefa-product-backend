@@ -241,6 +241,17 @@
         .notice-item.notice-new { border-color: var(--gold-deep); background: var(--gold-tint); }
         .notice-item p { margin: 0 0 6px; font-size: 14px; font-weight: 500; line-height: 1.5; }
         .notice-item span { font-size: 12px; color: var(--ink-faint); }
+        .notice-item { position: relative; padding-right: 60px; transition: opacity 0.28s ease, transform 0.28s ease; }
+        .notice-item.removing { opacity: 0; transform: scale(0.98); }
+        .notice-delete { position: absolute; top: 50%; right: 14px; transform: translateY(-50%); width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid transparent; background: transparent; color: var(--ink-faint); cursor: pointer; opacity: 0; transition: opacity 0.25s ease, background 0.2s, color 0.2s, border-color 0.2s; }
+        .notice-delete svg { width: 16px; height: 16px; }
+        .notice-item:hover .notice-delete, .notice-delete:focus-visible { opacity: 1; }
+        .notice-delete:hover { background: var(--danger-soft); color: var(--danger); border-color: #F0C9C3; }
+        .notice-delete:disabled { opacity: 0.5; cursor: not-allowed; }
+        @media (hover: none) { .notice-delete { opacity: 1; } }
+        .notices-toolbar { display: flex; justify-content: flex-end; margin: -10px 0 16px; }
+        .notices-toolbar .save-btn { height: 38px; padding: 0 16px; font-size: 13px; }
+        .notices-toolbar[hidden] { display: none; }
 
         .empty-orders { color: var(--ink-soft); font-size: 14px; text-align: center; padding: 28px 0 8px; display: none; }
         .orders-status { color: var(--ink-soft); font-size: 14px; text-align: center; padding: 28px 0 8px; }
@@ -281,8 +292,14 @@
         .review-stars { font-size: 18px; letter-spacing: 2px; color: #E0A400; white-space: nowrap; }
         .review-stars .off { color: var(--line); }
         .review-text { margin: 0; font-size: 14px; line-height: 22px; color: var(--ink-soft); word-break: break-word; }
-        .review-actions { display: flex; gap: 10px; margin-top: 16px; }
-        .review-actions .save-btn { height: 38px; padding: 0 18px; font-size: 13px; }
+        .review-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 10px; opacity: 0; transform: translateY(2px); transition: opacity 0.25s ease, transform 0.25s var(--ease-out); }
+        .review-card:hover .review-actions, .review-actions:focus-within { opacity: 1; transform: none; }
+        @media (hover: none) { .review-actions { opacity: 1; } }
+        .review-icon-btn { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid transparent; background: transparent; color: var(--ink-faint); cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+        .review-icon-btn svg { width: 16px; height: 16px; }
+        .review-icon-btn:hover { background: var(--surface-2); color: var(--brown); border-color: var(--line); }
+        .review-icon-btn.danger:hover { background: var(--danger-soft); color: var(--danger); border-color: #F0C9C3; }
+        .review-icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .review-edit { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
         .review-card.editing .review-edit { display: block; animation: panelIn 0.4s var(--ease-out) both; }
         .review-card.editing .review-text, .review-card.editing .review-actions { display: none; }
@@ -489,6 +506,9 @@
                 <div class="details-panel">
                     <h2 tabindex="-1">Notifications</h2>
                     <p class="panel-sub">Delivery updates for your orders appear here.</p>
+                    <div class="notices-toolbar" id="notices-toolbar" hidden>
+                        <button type="button" class="save-btn secondary-btn" id="clear-notices">Clear all</button>
+                    </div>
                     <div id="notices-list">
                         <p class="orders-status">Loading your notifications...</p>
                     </div>
@@ -1210,6 +1230,8 @@
         }
 
         // ---------- My reviews (GET /api/reviews/mine, PUT and DELETE /api/reviews/{id}) ----------
+        const PENCIL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>';
+        const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6M14 11v6"></path></svg>';
         let myReviews = [];
 
         function reviewProductName(r) {
@@ -1228,13 +1250,13 @@
             return '<div class="review-card" data-id="' + esc(r.id) + '">' +
                 '<div class="review-card-head">' +
                     '<div><h4>' + esc(reviewProductName(r)) + '</h4>' +
-                    '<div class="review-meta">' + esc(formatDate(r.created_at)) + (edited ? ' \u00B7 edited' : '') + '</div></div>' +
+                    '<div class="review-meta">' + esc(formatDate(r.created_at)) + (r.order_id ? ' \u00B7 Order #STF-' + String(r.order_id).padStart(5, '0') : '') + (edited ? ' \u00B7 edited' : '') + '</div></div>' +
                     starsHtml(r.rating) +
                 '</div>' +
                 '<p class="review-text">' + esc(r.comment || '') + '</p>' +
                 '<div class="review-actions">' +
-                    '<button type="button" class="save-btn secondary-btn" data-action="edit">Edit</button>' +
-                    '<button type="button" class="save-btn danger-btn" data-action="delete">Delete</button>' +
+                    '<button type="button" class="review-icon-btn" data-action="edit" title="Edit review" aria-label="Edit your review">' + PENCIL_ICON + '</button>' +
+                    '<button type="button" class="review-icon-btn danger" data-action="delete" title="Delete review" aria-label="Delete your review">' + TRASH_ICON + '</button>' +
                 '</div>' +
                 '<form class="review-edit">' +
                     '<div class="form-group">' +
@@ -1373,10 +1395,14 @@
             return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
         }
 
+        const NOTICE_TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6M14 11v6"></path></svg>';
+        const NOTICES_EMPTY = '<p class="orders-status">No notifications yet. You will see delivery updates for your orders here.</p>';
+
         function noticeHtml(notice) {
-            return '<div class="notice-item' + (notice.read ? '' : ' notice-new') + '">' +
+            return '<div class="notice-item' + (notice.read ? '' : ' notice-new') + '" data-id="' + esc(notice.id) + '">' +
                 '<p>' + esc(notice.message) + '</p>' +
                 '<span>' + esc(formatDateTime(notice.created_at)) + '</span>' +
+                '<button type="button" class="notice-delete" data-action="delete-notice" title="Delete notification" aria-label="Delete this notification">' + NOTICE_TRASH_ICON + '</button>' +
             '</div>';
         }
 
@@ -1395,6 +1421,7 @@
                 const notices = json.data || [];
                 const unread = Number(json.unread || 0);
                 setUnreadBadges(markRead ? 0 : unread);
+                document.getElementById('notices-toolbar').hidden = !notices.length;
 
                 if (!notices.length) {
                     list.innerHTML = '<p class="orders-status">No notifications yet. You will see delivery updates for your orders here.</p>';
@@ -1409,6 +1436,66 @@
                 list.innerHTML = '<p class="orders-status">Could not load your notifications. Please try again.</p>';
             }
         }
+
+        // ---------- Delete notifications (DELETE /api/notices/{id} and DELETE /api/notices) ----------
+        function afterNoticesChanged() {
+            const list = document.getElementById('notices-list');
+            const left = list.querySelectorAll('.notice-item').length;
+            document.getElementById('notices-toolbar').hidden = left === 0;
+            if (!left) list.innerHTML = NOTICES_EMPTY;
+        }
+
+        // Our own wording instead of raw server errors
+        function noticeError(res, json, fallback) {
+            return [404, 405].includes(res.status) || res.status >= 500 ? fallback : errorText(json, fallback);
+        }
+
+        async function deleteNotice(item, btn) {
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/notices/' + item.dataset.id, { method: 'DELETE', headers: authHeaders() });
+                if (res.status === 401) { sessionExpired(); return; }
+
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(noticeError(res, json, 'We couldn\'t delete this notification. Please try again.'));
+
+                item.classList.add('removing');
+                setTimeout(function () { item.remove(); afterNoticesChanged(); }, 280);
+                showToast('Notification deleted successfully', 'success');
+            } catch (err) {
+                btn.disabled = false;
+                showToast(err.message);
+            }
+        }
+
+        async function clearNotices(btn) {
+            if (!confirm('Delete all your notifications? This cannot be undone.')) return;
+
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/notices', { method: 'DELETE', headers: authHeaders() });
+                if (res.status === 401) { sessionExpired(); return; }
+
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(noticeError(res, json, 'We couldn\'t clear your notifications. Please try again.'));
+
+                document.getElementById('notices-list').innerHTML = NOTICES_EMPTY;
+                document.getElementById('notices-toolbar').hidden = true;
+                setUnreadBadges(0);
+                showToast('All notifications cleared', 'success');
+            } catch (err) {
+                showToast(err.message);
+            }
+            btn.disabled = false;
+        }
+
+        document.getElementById('notices-list').addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-action="delete-notice"]');
+            if (!btn) return;
+            const item = btn.closest('.notice-item');
+            if (item) deleteNotice(item, btn);
+        });
+        document.getElementById('clear-notices').addEventListener('click', function () { clearNotices(this); });
 
         // ---------- Log out: revoke the token on the server, clear the session, keep the cart ----------
         document.getElementById('logout-link').addEventListener('click', function () {

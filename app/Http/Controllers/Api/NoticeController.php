@@ -36,4 +36,26 @@ class NoticeController extends Controller
 
         return response()->json(['message' => 'Notifications marked as read']);
     }
+
+    // Customer: delete one of their own notifications
+    public function destroy(Request $request, Notice $notice)
+    {
+        if ($notice->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'You can only delete your own notifications.',
+            ], 403);
+        }
+
+        $notice->delete();
+
+        return response()->json(['message' => 'Notification deleted']);
+    }
+
+    // Customer: delete all of their notifications
+    public function clear(Request $request)
+    {
+        Notice::where('user_id', $request->user()->id)->delete();
+
+        return response()->json(['message' => 'Notifications cleared']);
+    }
 }
